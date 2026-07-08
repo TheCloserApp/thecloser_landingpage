@@ -178,6 +178,37 @@
       content: ""; position: absolute; inset: 0; pointer-events: none;
       background: radial-gradient(120% 90% at 50% 0%, transparent 55%, rgba(0,0,0,.7));
     }
+    .view-toggle {
+      position: absolute; z-index: 6; top: 18px; left: 50%; transform: translateX(-50%);
+      display: inline-flex; gap: 2px; padding: 3px; border-radius: 9999px;
+      background: rgba(10,10,10,.88); border: 1px solid var(--border-2);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    }
+    .vt-btn {
+      appearance: none; border: 0; cursor: pointer;
+      font-family: var(--font); font-size: 12.5px; font-weight: 500;
+      color: var(--muted); background: transparent;
+      padding: 6px 14px; border-radius: 9999px;
+      transition: color .15s ease, background .15s ease;
+      white-space: nowrap;
+    }
+    .vt-btn.active { background: #fff; color: #000; }
+    .vt-btn:not(.active):hover { color: var(--text); }
+    .rec-badge {
+      position: absolute; z-index: 6; top: 24px; right: 24px;
+      display: inline-flex; align-items: center; gap: 7px;
+      font-family: var(--mono); font-size: 11px; letter-spacing: .08em;
+      color: var(--muted); border: 1px solid var(--border-2); border-radius: 9999px;
+      padding: 5px 11px; background: rgba(10,10,10,.8);
+      opacity: 0; transition: opacity .25s ease;
+    }
+    .rec-badge i { width: 7px; height: 7px; border-radius: 50%; background: #f5545c; }
+    .frame.theirs .rec-badge { opacity: 1; }
+    .frame.theirs .rec-badge i { animation: recblink 1.2s steps(2) infinite; }
+    @keyframes recblink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: .2; } }
+    .assistant-card { transition: opacity .35s var(--ease); }
+    .frame.theirs .assistant-card { opacity: 0; pointer-events: none; }
+
     .cross {
       position: absolute; z-index: 2;
       width: 17px; height: 17px; color: var(--border-2);
@@ -404,7 +435,7 @@
         <div class="head">
           <span class="label" data-reveal>Live over any call</span>
           <h2 data-reveal>It floats where you need it.</h2>
-          <p data-reveal>TheCloser sits above your interview window and outside screen capture — the room sees the call, you see the answer.</p>
+          <p data-reveal>TheCloser sits above your interview window and outside screen capture — flip to their view and watch it disappear.</p>
         </div>
 
         <div class="feat-outer" data-reveal>
@@ -413,7 +444,12 @@
           <span class="cross bl" aria-hidden="true"><svg viewBox="0 0 17 17" fill="none"><path d="M8.5 1v15M1 8.5h15" stroke="currentColor" stroke-width="1"/></svg></span>
           <span class="cross br" aria-hidden="true"><svg viewBox="0 0 17 17" fill="none"><path d="M8.5 1v15M1 8.5h15" stroke="currentColor" stroke-width="1"/></svg></span>
 
-          <div class="frame">
+          <div class="frame" id="demo-frame">
+            <div class="view-toggle" role="tablist" aria-label="Demo view">
+              <button class="vt-btn active" id="vt-you" role="tab" aria-selected="true">Your view</button>
+              <button class="vt-btn" id="vt-them" role="tab" aria-selected="false">What they see</button>
+            </div>
+            <span class="rec-badge" aria-hidden="true"><i></i> REC</span>
             <div class="desktop-window" aria-hidden="true">
               <div class="titlebar">
                 <span class="traffic r"></span>
@@ -634,6 +670,21 @@
             io.observe(e);
           }
         });
+      }
+
+      var frame = document.getElementById('demo-frame');
+      var vtYou = document.getElementById('vt-you');
+      var vtThem = document.getElementById('vt-them');
+      if (frame && vtYou && vtThem) {
+        var setView = function (theirs) {
+          frame.classList.toggle('theirs', theirs);
+          vtYou.classList.toggle('active', !theirs);
+          vtThem.classList.toggle('active', theirs);
+          vtYou.setAttribute('aria-selected', String(!theirs));
+          vtThem.setAttribute('aria-selected', String(theirs));
+        };
+        vtYou.addEventListener('click', function () { setView(false); });
+        vtThem.addEventListener('click', function () { setView(true); });
       }
 
       var qEl = document.getElementById('demo-q');
