@@ -257,6 +257,30 @@
     .feat h3 { font-size: 16px; font-weight: 600; letter-spacing: -.01em; margin-top: 20px; color: #fff; }
     .feat p { font-size: 14px; color: var(--muted); margin-top: 8px; line-height: 1.65; }
 
+    /* ---------- session modes ---------- */
+    .sessions { padding: 0 0 120px; text-align: center; }
+    .sess-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 1px; background: var(--border); border: 1px solid var(--border);
+      margin-top: 28px; text-align: left;
+    }
+    .sess { background: var(--bg); padding: 24px 22px 26px; transition: background .2s ease; }
+    .sess:hover { background: var(--panel); }
+    .sess h3 { font-size: 14px; font-weight: 600; color: #fff; letter-spacing: -.01em; }
+    .sess p { margin-top: 7px; font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+    /* ---------- hotkeys ---------- */
+    .keys { padding: 0 0 120px; }
+    .keys-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 1px; background: var(--border); border: 1px solid var(--border);
+    }
+    .keyrow { display: flex; align-items: center; justify-content: space-between; gap: 16px; background: var(--bg); padding: 15px 20px; transition: background .2s ease; }
+    .keyrow:hover { background: var(--panel); }
+    .keyrow .act { font-size: 14px; color: var(--muted); }
+    .keyrow .kbd { flex-shrink: 0; font-size: 12px; padding: 4px 9px; }
+    .keys-note { margin-top: 20px; text-align: center; font-family: var(--mono); font-size: 12px; color: var(--faint); }
+
     /* ---------- models ---------- */
     .models { padding: 0 0 120px; text-align: center; }
     .models .label { display: block; }
@@ -293,6 +317,8 @@
       .desktop-window { left: 50%; top: 64px; width: min(540px, calc(100% - 40px)); transform: translateX(-50%); }
       .assistant-card { left: 50%; right: auto; top: 480px; width: min(430px, calc(100% - 48px)); transform: translateX(-50%); }
       .feat-grid { grid-template-columns: 1fr; }
+      .sess-grid { grid-template-columns: repeat(2, 1fr); }
+      .keys-grid { grid-template-columns: 1fr; }
     }
     @media (max-width: 640px) {
       .wrap { padding: 0 18px; }
@@ -308,6 +334,9 @@
       .assistant-card { top: 340px; }
       .a { min-height: 158px; }
       .features { padding: 96px 0; }
+      .sess-grid { grid-template-columns: 1fr; }
+      .sessions, .keys { padding-bottom: 96px; }
+      .keyrow { padding: 13px 16px; }
       .models { padding-bottom: 96px; }
       .closing { padding: 104px 0; }
       .foot .flinks { width: 100%; margin-left: 0; }
@@ -439,8 +468,8 @@
       <div class="wrap">
         <div class="head">
           <span class="label" data-reveal>Why TheCloser</span>
-          <h2 data-reveal>Built to do one thing well.</h2>
-          <p data-reveal>No clutter, no account, no data routed through us. It listens, it answers, it stays hidden.</p>
+          <h2 data-reveal>Everything you need to close.</h2>
+          <p data-reveal>No account, no server in the middle. It listens, transcribes, and answers in real time — and stays invisible to everyone else.</p>
         </div>
         <div class="feat-outer" data-reveal>
           <span class="cross tl" aria-hidden="true"><svg viewBox="0 0 17 17" fill="none"><path d="M8.5 1v15M1 8.5h15" stroke="currentColor" stroke-width="1"/></svg></span>
@@ -449,22 +478,84 @@
           <span class="cross br" aria-hidden="true"><svg viewBox="0 0 17 17" fill="none"><path d="M8.5 1v15M1 8.5h15" stroke="currentColor" stroke-width="1"/></svg></span>
           <div class="feat-grid">
             <div class="feat">
-              <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16v10H8l-4 3.5z"/></svg></div>
-              <h3>Answers as they ask</h3>
-              <p>A structured, resume-aware answer streams the instant the interviewer finishes — no typing, no tab-switching.</p>
-            </div>
-            <div class="feat">
               <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12s3.5-6.5 9-6.5 9 6.5 9 6.5-3.5 6.5-9 6.5S3 12 3 12z"/><path d="M4 4l16 16"/></svg></div>
               <h3>Invisible on screen-share</h3>
-              <p>Excluded from screen recording and capture at the OS level — only you ever see it, on any call.</p>
+              <p>Every window is excluded from capture at the OS level — Zoom, Meet, Teams, and recordings see nothing. No menu-bar icon either.</p>
+            </div>
+            <div class="feat">
+              <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16v10H8l-4 3.5z"/></svg></div>
+              <h3>Answers as they ask</h3>
+              <p>The live transcript streams to the model the moment they finish. Interview mode leads with a verbatim opening line, then tight scannable bullets.</p>
+            </div>
+            <div class="feat">
+              <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 10v4"/></svg></div>
+              <h3>Live transcription</h3>
+              <p>Mic or system audio, transcribed in real time — on-device with Apple Speech, or ElevenLabs Scribe with your key.</p>
+            </div>
+            <div class="feat">
+              <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13.5 9 5 9-5"/></svg></div>
+              <h3>Floats over everything</h3>
+              <p>Always on top — every Space, even full-screen apps. Drag it anywhere, resize it, and it never steals focus from the window you're in.</p>
+            </div>
+            <div class="feat">
+              <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/><path d="M10 12h5M10 15.5h5"/></svg></div>
+              <h3>Résumé tailoring</h3>
+              <p>Import your résumé, paste a job description, and export a tailored DOCX — with before/after match scoring.</p>
             </div>
             <div class="feat">
               <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M3 7.5h2M3 16.5h2M19 7.5h2M19 16.5h2"/></svg></div>
-              <h3>Bring your own model</h3>
-              <p>Plug in your own keys for Claude, GPT-4o, or Grok. No markup, no middleman, nothing logged.</p>
+              <h3>Bring your own keys</h3>
+              <p>Seven providers, one picker. Keys are stored locally on your Mac — no markup, no middleman, nothing logged.</p>
             </div>
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- SESSION MODES -->
+    <section class="sessions" id="modes">
+      <div class="wrap">
+        <span class="label" data-reveal>Session modes</span>
+        <div class="sess-grid" data-reveal>
+          <div class="sess">
+            <h3>Interview</h3>
+            <p>Verbatim opening line plus scannable bullets, grounded in your résumé and the job description.</p>
+          </div>
+          <div class="sess">
+            <h3>Meeting</h3>
+            <p>Summaries, action items, decisions, and suggested questions as the meeting runs.</p>
+          </div>
+          <div class="sess">
+            <h3>Call</h3>
+            <p>Real-time assist on any regular call — context without breaking your flow.</p>
+          </div>
+          <div class="sess">
+            <h3>General</h3>
+            <p>A concise floating assistant for everything else you do on your Mac.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOTKEYS -->
+    <section class="keys" id="hotkeys">
+      <div class="wrap">
+        <div class="head">
+          <span class="label" data-reveal>Global hotkeys</span>
+          <h2 data-reveal>Never touch the mouse.</h2>
+          <p data-reveal>Every core action fires system-wide — from any app, no Accessibility permission required.</p>
+        </div>
+        <div class="keys-grid" data-reveal>
+          <div class="keyrow"><span class="act">Show / hide the overlay</span><span class="kbd">⌃ ⌥ Space</span></div>
+          <div class="keyrow"><span class="act">Start / stop recording</span><span class="kbd">⌃ ⌥ T</span></div>
+          <div class="keyrow"><span class="act">Quick Ask by voice, push-to-talk</span><span class="kbd">hold Fn / 🌐</span></div>
+          <div class="keyrow"><span class="act">Dictate into the active app</span><span class="kbd">hold ⌥</span></div>
+          <div class="keyrow"><span class="act">Screenshot → explain</span><span class="kbd">⌃ ⌥ S</span></div>
+          <div class="keyrow"><span class="act">Explain the clipboard</span><span class="kbd">⌃ ⌥ C</span></div>
+          <div class="keyrow"><span class="act">Tailor a résumé from the clipboard</span><span class="kbd">⌃ ⌥ R</span></div>
+          <div class="keyrow"><span class="act">Move or resize the panel</span><span class="kbd">⌃ ⌥ / ⌃ ⇧ arrows</span></div>
+        </div>
+        <p class="keys-note" data-reveal>also included — session history · prompt library</p>
       </div>
     </section>
 
@@ -473,11 +564,19 @@
       <div class="wrap">
         <span class="label" data-reveal>Works with your keys</span>
         <div class="row" data-reveal>
-          <span>Claude</span>
+          <span>Anthropic</span>
           <span class="dotsep" aria-hidden="true"></span>
-          <span>GPT-4o</span>
+          <span>OpenAI</span>
           <span class="dotsep" aria-hidden="true"></span>
           <span>Grok</span>
+          <span class="dotsep" aria-hidden="true"></span>
+          <span>DeepSeek</span>
+          <span class="dotsep" aria-hidden="true"></span>
+          <span>Kimi</span>
+          <span class="dotsep" aria-hidden="true"></span>
+          <span>NVIDIA NIM</span>
+          <span class="dotsep" aria-hidden="true"></span>
+          <span>OpenRouter</span>
         </div>
       </div>
     </div>
@@ -486,7 +585,7 @@
     <section class="closing">
       <div class="wrap">
         <h2 data-reveal>Ready before they finish the question.</h2>
-        <p data-reveal>macOS 13+ · MIT licensed · no subscription</p>
+        <p data-reveal>macOS 14+ · Apple Silicon · MIT licensed · no subscription</p>
         <div class="cta" data-reveal>
           <a class="btn btn-primary" href="/thecloser.dmg">
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.7 12.6c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.8.8-3.5.8s-1.8-.8-3-.8c-1.5 0-3 .9-3.8 2.3-1.6 2.8-.4 7 1.2 9.3.8 1.1 1.7 2.4 2.9 2.3 1.2 0 1.6-.7 3-.7s1.8.7 3 .7 2-1 2.8-2.1c.9-1.3 1.2-2.5 1.3-2.6-.1 0-2.5-1-2.5-3.8zM14.5 5.7c.6-.8 1-1.9.9-3-1 0-2.1.7-2.8 1.5-.6.7-1.1 1.8-1 2.8 1.1.1 2.2-.5 2.9-1.3z"/></svg>
