@@ -1,95 +1,46 @@
-# TheCloser — Landing Page
+# TheCloser — Website
 
-A self-contained static landing page for **TheCloser** (native macOS interview copilot).
-Everything — fonts, the component runtime, and the live interactive demo — is inlined into a
-single `index.html`, so there is **no build step** and no external requests at runtime.
+The landing page for [TheCloser](https://thecloser.tech), an invisible AI interview copilot for macOS. The app itself lives at [TheCloserApp/MAC](https://github.com/TheCloserApp/MAC).
 
-## Deploy to Vercel
+It's a single hand-written static `index.html` with no framework and no build step. Fonts (Geist, Geist Mono) come from Google Fonts. The only script handles the sticky nav, scroll reveals, the demo's typing animation and the "What they see" toggle.
 
-This is a pure static site. Vercel serves `index.html` from the root automatically.
-
-### Option A — Vercel CLI (fastest)
+## Run locally
 
 ```bash
-npm i -g vercel        # if you don't have it
-cd landing
-vercel                 # preview deploy
-vercel --prod          # production deploy
+python3 -m http.server 8765
 ```
 
-### Option B — Git + Vercel dashboard
+Then open <http://localhost:8765>.
 
-1. Push this folder to a Git repo (GitHub/GitLab/Bitbucket).
-2. In the Vercel dashboard: **Add New… → Project → Import** the repo.
-3. Framework Preset: **Other** (no build command, no output dir needed).
-4. **Deploy.**
+## Deploy
 
-### Option C — Drag & drop
+Vercel deploys `main` automatically. `vercel.json` sets clean URLs, cache and security headers, and redirects `/thecloser.dmg` to the latest release so old download links keep working.
 
-Open <https://vercel.com/new>, then drag this folder onto the page.
+## Downloads
 
-## Configuration
+Every Download button points to the latest GitHub Release of the app:
 
-Two links are configurable in the page. They live inside the bundled template, so use the
-helper script to change them rather than hand-editing the 23 MB `index.html`:
-
-| What            | Current value                                   |
-| --------------- | ----------------------------------------------- |
-| GitHub / Contribute | `https://github.com/abhishek-reddy-m/MAC`   |
-| Download button | `/thecloser.dmg` (served from this folder)      |
-
-### Set the download link (when ready)
-
-```bash
-python3 update_links.py --download "https://your-download-url/TheCloser.dmg"
+```
+https://github.com/TheCloserApp/MAC/releases/latest/download/TheCloser.dmg
 ```
 
-You can also change the GitHub URL the same way:
+That URL always resolves to the newest release, as long as each release attaches a file named exactly `TheCloser.dmg`. Shipping a new version needs no change to this site:
 
 ```bash
-python3 update_links.py --github "https://github.com/abhishek-reddy-m/MAC"
-```
-
-Re-run, then redeploy. The script rewrites `index.html` in place.
-
-## The download (thecloser.dmg)
-
-`thecloser.dmg` is a compressed, drag-to-install disk image (TheCloser.app + an
-Applications shortcut) built from `MacOverlay/build/thecloser.app` (v3.0, Apple
-Silicon / arm64). All three "Download" buttons point at `/thecloser.dmg`, and
-Vercel serves it with a download header.
-
-To rebuild the DMG after a new app build:
-
-```bash
+# From the app repo, after ./build.sh
 STAGE=$(mktemp -d)
-ditto /path/to/thecloser.app "$STAGE/TheCloser.app"
+ditto build/thecloser.app "$STAGE/thecloser.app"
 ln -s /Applications "$STAGE/Applications"
-hdiutil create -volname "TheCloser" -srcfolder "$STAGE" -ov -format UDZO thecloser.dmg
+hdiutil create -volname "TheCloser" -srcfolder "$STAGE" -ov -format UDZO TheCloser.dmg
 rm -rf "$STAGE"
+
+gh release create v3.1 TheCloser.dmg --repo TheCloserApp/MAC --title "TheCloser 3.1" --notes "…"
 ```
 
-### ⚠️ Gatekeeper warning (important)
+### Gatekeeper
 
-The app is **ad-hoc signed, not notarized** (no Apple Developer ID). When a user
-downloads and opens it, macOS will say *"TheCloser is damaged / cannot be opened
-because the developer cannot be verified."* They must bypass Gatekeeper:
+The app is ad-hoc signed, not notarized, so macOS blocks it on first launch. Users need to open **System Settings → Privacy & Security** and click **Open Anyway**. Removing that step requires signing with an Apple Developer ID and notarizing. The build is Apple Silicon only.
 
-- **Right-click the app → Open → Open** (one-time), or
-- Run: `xattr -dr com.apple.quarantine /Applications/TheCloser.app`
+## License
 
-For a clean public release with no warnings you need to **sign with a Developer
-ID certificate and notarize** with Apple. Also note this build is **arm64 only**
-— it won't run on Intel Macs.
-
-> Tip: for large/updating binaries, hosting the DMG as a **GitHub Release asset**
-> on the MAC repo (and pointing the download link there) keeps it out of the
-> deploy. Run `python3 update_links.py --download "<release-asset-url>"` to switch.
-
-## Files
-
-- `index.html` — the deployable, self-contained landing page.
-- `thecloser.dmg` — the downloadable macOS app (drag-to-install).
-- `vercel.json` — static hosting config (clean URLs, download + security headers).
-- `update_links.py` — safely edits the GitHub / Download links inside the bundle.
-- `TheCloser Landing.html` — original export, kept as the source of truth.
+MIT
