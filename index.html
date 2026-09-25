@@ -6,15 +6,53 @@
   <meta name="theme-color" content="#000000" />
   <meta name="color-scheme" content="dark" />
 
-  <title>TheCloser — Your interview copilot for macOS</title>
-  <meta name="description" content="A native macOS overlay that listens to your interview and streams the answer the moment they finish. Invisible on screen-share. Free, open source, bring your own model." />
+  <title>TheCloser — Free AI Interview Copilot for Mac</title>
+  <meta name="description" content="Free, open-source AI interview copilot for Mac. Live transcription and instant answers in an overlay that's invisible on Zoom, Meet and Teams screen shares." />
+  <link rel="canonical" href="https://www.thecloser.tech/" />
 
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="TheCloser — Your interview copilot for macOS" />
-  <meta property="og:description" content="A native overlay that streams the answer the instant they finish. Invisible on screen-share. Free & open source." />
-  <meta property="og:url" content="https://thecloser.tech" />
+  <meta property="og:site_name" content="TheCloser" />
+  <meta property="og:title" content="TheCloser — Free AI Interview Copilot for Mac" />
+  <meta property="og:description" content="Live transcription and instant answers in a floating overlay that's invisible on screen-share. Free and open source." />
+  <meta property="og:url" content="https://www.thecloser.tech/" />
+  <meta property="og:image" content="https://www.thecloser.tech/og.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="TheCloser: Listen. Answer. Close. The free AI interview copilot for Mac." />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="TheCloser — Free AI Interview Copilot for Mac" />
+  <meta name="twitter:description" content="Live transcription and instant answers in a floating overlay that's invisible on screen-share. Free and open source." />
+  <meta name="twitter:image" content="https://www.thecloser.tech/og.png" />
 
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%23000000'/%3E%3Cg%3E%3Crect x='4.3' y='9.8' width='2.35' height='4.4' rx='1.17' fill='%23ffffff'/%3E%3Crect x='7.85' y='7.3' width='2.35' height='9.4' rx='1.17' fill='%23ffffff'/%3E%3Crect x='11.4' y='4.9' width='2.35' height='14.2' rx='1.17' fill='%23ffffff'/%3E%3Crect x='14.95' y='7.9' width='2.35' height='8.2' rx='1.17' fill='%23ffffff'/%3E%3Crect x='18.5' y='10.4' width='2.35' height='3.2' rx='1.17' fill='%23ffffff'/%3E%3C/g%3E%3C/svg%3E" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "name": "TheCloser",
+        "url": "https://www.thecloser.tech/"
+      },
+      {
+        "@type": "SoftwareApplication",
+        "name": "TheCloser",
+        "description": "Free, open-source AI interview copilot for Mac. Live transcription and instant answers in a floating overlay that stays invisible on screen shares.",
+        "url": "https://www.thecloser.tech/",
+        "image": "https://www.thecloser.tech/og.png",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "macOS 14 or later (Apple Silicon)",
+        "downloadUrl": "https://github.com/TheCloserApp/MAC/releases/latest/download/TheCloser.dmg",
+        "license": "https://opensource.org/licenses/MIT",
+        "isAccessibleForFree": true,
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "sameAs": ["https://github.com/TheCloserApp/MAC"]
+      }
+    ]
+  }
+  </script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -24,6 +62,10 @@
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){ dataLayer.push(arguments); }
+    // Keep local dev and Vercel preview deploys out of the production analytics.
+    if (/^(localhost|127\.0\.0\.1)$|\.vercel\.app$/.test(location.hostname)) {
+      window['ga-disable-G-JD79ZBDYEV'] = true;
+    }
     gtag('js', new Date());
     gtag('config', 'G-JD79ZBDYEV');
   </script>
@@ -325,6 +367,28 @@
     .models .row span:hover { color: var(--text); }
     .models .dotsep { width: 3px; height: 3px; border-radius: 50%; background: var(--border-2); }
 
+    /* ---------- faq ---------- */
+    .faq { padding: 120px 0; border-top: 1px solid var(--border); }
+    .faq-list { max-width: 760px; margin: 0 auto; border-top: 1px solid var(--border); }
+    .faq-item { border-bottom: 1px solid var(--border); }
+    .faq-item summary {
+      list-style: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: space-between; gap: 24px;
+      padding: 20px 4px; font-size: 16px; font-weight: 500; color: var(--text);
+      transition: color .15s ease;
+    }
+    .faq-item summary::-webkit-details-marker { display: none; }
+    .faq-item summary:hover { color: #fff; }
+    .faq-item summary::after {
+      content: ""; flex-shrink: 0; width: 12px; height: 12px; color: var(--muted);
+      background:
+        linear-gradient(currentColor, currentColor) center / 100% 1.5px no-repeat,
+        linear-gradient(currentColor, currentColor) center / 1.5px 100% no-repeat;
+      transition: transform .2s var(--ease);
+    }
+    .faq-item[open] summary::after { transform: rotate(45deg); }
+    .faq-item p { padding: 0 4px 22px; max-width: 64ch; font-size: 15px; line-height: 1.7; color: var(--muted); }
+
     /* ---------- closing ---------- */
     .closing { text-align: center; border-top: 1px solid var(--border); padding: 130px 0; }
     .closing h2 { font-size: clamp(36px, 5.4vw, 56px); font-weight: 650; letter-spacing: -.045em; color: #fff; max-width: 18ch; margin: 0 auto; line-height: 1.06; }
@@ -368,6 +432,8 @@
       .features { padding: 96px 0; }
       .sess-grid { grid-template-columns: 1fr; }
       .sessions, .keys { padding-bottom: 96px; }
+      .faq { padding: 96px 0; }
+      .faq-item summary { font-size: 15px; padding: 18px 2px; }
       .keyrow { padding: 13px 16px; }
       .models { padding-bottom: 96px; }
       .closing { padding: 104px 0; }
@@ -391,6 +457,7 @@
       <nav class="nav-links" aria-label="Primary">
         <a href="#demo">Demo</a>
         <a href="#features">Features</a>
+        <a href="#faq">FAQ</a>
         <a href="https://github.com/TheCloserApp/MAC" target="_blank" rel="noopener">GitHub</a>
       </nav>
       <div class="nav-right">
@@ -412,7 +479,7 @@
           <span class="gt gt-purple">Answer.</span>
           <span class="gt gt-orange">Close.</span>
         </h1>
-        <p class="sub" data-reveal>A native macOS overlay that hears the interviewer and streams a structured answer the moment they finish — invisible on screen-share.</p>
+        <p class="sub" data-reveal>The free, open-source AI interview copilot for Mac. It hears the interviewer and streams a structured answer the moment they finish — invisible on screen-share.</p>
         <div class="cta" data-reveal>
           <a class="btn btn-primary" href="https://github.com/TheCloserApp/MAC/releases/latest/download/TheCloser.dmg">
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.7 12.6c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.8.8-3.5.8s-1.8-.8-3-.8c-1.5 0-3 .9-3.8 2.3-1.6 2.8-.4 7 1.2 9.3.8 1.1 1.7 2.4 2.9 2.3 1.2 0 1.6-.7 3-.7s1.8.7 3 .7 2-1 2.8-2.1c.9-1.3 1.2-2.5 1.3-2.6-.1 0-2.5-1-2.5-3.8zM14.5 5.7c.6-.8 1-1.9.9-3-1 0-2.1.7-2.8 1.5-.6.7-1.1 1.8-1 2.8 1.1.1 2.2-.5 2.9-1.3z"/></svg>
@@ -597,7 +664,7 @@
     </section>
 
     <!-- MODELS -->
-    <div class="models">
+    <div class="models" id="models">
       <div class="wrap">
         <span class="label" data-reveal>Works with your keys</span>
         <div class="row" data-reveal>
@@ -617,6 +684,46 @@
         </div>
       </div>
     </div>
+
+    <!-- FAQ -->
+    <section class="faq" id="faq">
+      <div class="wrap">
+        <div class="head">
+          <span class="label" data-reveal>FAQ</span>
+          <h2 data-reveal>Questions, answered.</h2>
+        </div>
+        <div class="faq-list" data-reveal>
+          <details class="faq-item">
+            <summary>Can the interviewer see TheCloser when I share my screen?</summary>
+            <p>No. Every TheCloser window, including its menus and popovers, is excluded from screen capture by macOS. Zoom, Google Meet, Microsoft Teams and screen recorders capture your screen without it, and there's no menu-bar icon either.</p>
+          </details>
+          <details class="faq-item">
+            <summary>Is it really free?</summary>
+            <p>Yes. TheCloser is open source under the MIT license, with no subscription and no account. You add your own API key and pay the AI provider directly for what you use.</p>
+          </details>
+          <details class="faq-item">
+            <summary>Which AI models does it work with?</summary>
+            <p>Anthropic, OpenAI, Grok, DeepSeek, Kimi, NVIDIA NIM and OpenRouter, all from one model picker. Transcription runs on-device with Apple Speech, or with ElevenLabs Scribe if you add an ElevenLabs key.</p>
+          </details>
+          <details class="faq-item">
+            <summary>Does my data go through your servers?</summary>
+            <p>No. There is no TheCloser server. Your API keys are stored on your Mac, and your transcript goes straight from your Mac to the AI provider you picked.</p>
+          </details>
+          <details class="faq-item">
+            <summary>Does it work with Zoom, Google Meet and Teams?</summary>
+            <p>Yes, and with any other call app. TheCloser listens to your microphone or your Mac's system audio instead of plugging into the call, so it works the same everywhere.</p>
+          </details>
+          <details class="faq-item">
+            <summary>What Mac do I need?</summary>
+            <p>macOS 14 Sonoma or later on an Apple Silicon Mac (M1 or newer). The download doesn't run on Intel Macs.</p>
+          </details>
+          <details class="faq-item">
+            <summary>macOS says TheCloser can't be opened. What do I do?</summary>
+            <p>TheCloser isn't notarized by Apple yet, so macOS blocks the first launch. Open System Settings, go to Privacy &amp; Security, scroll down and click Open Anyway. You only need to do this once. Then allow Microphone, Speech Recognition and Screen Recording when asked.</p>
+          </details>
+        </div>
+      </div>
+    </section>
 
     <!-- CLOSING -->
     <section class="closing">
@@ -673,16 +780,72 @@
         });
       }
 
+      function track(name, params) {
+        if (typeof window.gtag === 'function') window.gtag('event', name, params || {});
+      }
+
+      function sectionName(el) {
+        return el.id || el.className.split(' ')[0];
+      }
+
+      function ctaLocation(el) {
+        if (el.closest('header')) return 'nav';
+        if (el.closest('footer')) return 'footer';
+        var s = el.closest('section');
+        return s ? sectionName(s) : 'page';
+      }
+
+      // GA4's automatic file-download tracking ignores .dmg, and the file is
+      // served from github.com, so downloads need their own event.
+      document.addEventListener('click', function (e) {
+        var a = e.target.closest('a[href]');
+        if (!a) return;
+        var href = a.getAttribute('href');
+        var params = {
+          cta_location: ctaLocation(a),
+          link_text: a.textContent.trim().replace(/\s+/g, ' ').slice(0, 100)
+        };
+        if (/\.dmg$/.test(href)) {
+          params.file_name = 'TheCloser.dmg';
+          track('download_click', params);
+        } else if (href.indexOf('github.com') !== -1) {
+          params.link_url = href;
+          track('github_click', params);
+        } else if (href.charAt(0) === '#') {
+          params.target = href.slice(1) || 'top';
+          track('nav_click', params);
+        }
+      });
+
+      if ('IntersectionObserver' in window) {
+        var seen = new IntersectionObserver(function (entries) {
+          entries.forEach(function (e) {
+            if (!e.isIntersecting) return;
+            track('section_view', { section_name: sectionName(e.target) });
+            seen.unobserve(e.target);
+          });
+        }, { rootMargin: '-45% 0px -45% 0px' });
+        document.querySelectorAll('main > section, main > .models').forEach(function (s) { seen.observe(s); });
+      }
+
+      document.querySelectorAll('.faq-item').forEach(function (d) {
+        d.addEventListener('toggle', function () {
+          if (d.open) track('faq_open', { question: d.querySelector('summary').textContent.trim().slice(0, 100) });
+        });
+      });
+
       var frame = document.getElementById('demo-frame');
       var vtYou = document.getElementById('vt-you');
       var vtThem = document.getElementById('vt-them');
       if (frame && vtYou && vtThem) {
         var setView = function (theirs) {
+          if (frame.classList.contains('theirs') === theirs) return;
           frame.classList.toggle('theirs', theirs);
           vtYou.classList.toggle('active', !theirs);
           vtThem.classList.toggle('active', theirs);
           vtYou.setAttribute('aria-selected', String(!theirs));
           vtThem.setAttribute('aria-selected', String(theirs));
+          track('demo_view_toggle', { view: theirs ? 'what_they_see' : 'your_view' });
         };
         vtYou.addEventListener('click', function () { setView(false); });
         vtThem.addEventListener('click', function () { setView(true); });
