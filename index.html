@@ -62,8 +62,8 @@
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){ dataLayer.push(arguments); }
-    // Keep local dev and Vercel preview deploys out of the production analytics.
-    if (/^(localhost|127\.0\.0\.1)$|\.vercel\.app$/.test(location.hostname)) {
+    // Keep local dev, Vercel previews and the beta site out of the production analytics.
+    if (/^(localhost|127\.0\.0\.1|beta\.thecloser\.tech)$|\.vercel\.app$/.test(location.hostname)) {
       window['ga-disable-G-JD79ZBDYEV'] = true;
     }
     gtag('js', new Date());
