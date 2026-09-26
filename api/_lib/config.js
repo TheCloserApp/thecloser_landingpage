@@ -34,10 +34,15 @@ export const SITE_URL = process.env.SITE_URL ?? 'https://www.thecloser.tech';
 /** The app's anonymous Mac fingerprint: a SHA-256 hex digest. */
 export const DEVICE_PATTERN = /^[a-f0-9]{64}$/;
 
-export class ConfigError extends Error {}
+export class ConfigError extends Error {
+  constructor(setting) {
+    super(`Missing environment variable ${setting}`);
+    this.setting = setting;
+  }
+}
 
 export function env(name) {
   const value = process.env[name];
-  if (!value) throw new ConfigError(`Missing environment variable ${name}`);
+  if (!value) throw new ConfigError(name);
   return value;
 }
