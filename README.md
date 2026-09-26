@@ -54,6 +54,7 @@ The app is ad-hoc signed, not notarized, so macOS blocks it on first launch. Use
 | `GET /api/usage` | This billing period's allowance: used, remaining, and when it resets. |
 | `POST /api/portal` | Opens Stripe's customer portal (cancel, change plan, card) for this subscription. |
 | `GET /api/models` | Each plan's models and allowance. Plans live in `api/_lib/config.js`. |
+| `POST /api/model-request` `{model, note?, plan?, source?}` | "Request a model" from `/request-model` (the app links there). Saves each request as a private JSON file under `model-requests/` in the project's Blob store, with nothing that identifies the sender. Read them in Vercel → Storage → the Blob store → Browser. |
 
 The subscription's Stripe metadata holds `device`, `plan`, `or_hash`, `or_key`, `or_base` and `or_period`. `or_key` is the subscriber's OpenRouter key, encrypted with AES-256-GCM. The pass carries the same encrypted key, so `/api/chat` needs no lookups. `or_base` is what the key had spent when the current billing period began, and the key's cap is always `or_base` plus the plan's allowance.
 
@@ -64,6 +65,7 @@ The subscription's Stripe metadata holds `device`, `plan`, `or_hash`, `or_key`, 
 | `STRIPE_SECRET_KEY` | Stripe → Developers → API keys → Secret key |
 | `STRIPE_WEBHOOK_SECRET` | Stripe → Developers → Webhooks → your endpoint → Signing secret |
 | `OPENROUTER_MANAGEMENT_KEY` | OpenRouter → Settings → Provisioning (management) keys |
+| `BLOB_READ_WRITE_TOKEN` | Set by Vercel when a **private** Blob store is connected to the project (Storage → Create → Blob). Used by `/api/model-request`. |
 | `PASS_SECRET` | Any long random string, e.g. `openssl rand -hex 32`. Changing it signs everyone out, and existing subscribers' stored keys can no longer be decrypted, so set it once. |
 
 Stripe prices are found by lookup key: `pro_monthly` and `pro_max_monthly`.

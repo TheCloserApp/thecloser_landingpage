@@ -9,6 +9,7 @@
     "test": "node --test --experimental-test-module-mocks"
   },
   "dependencies": {
+    "@vercel/blob": "^2.8.0",
     "stripe": "^22.6.2"
   }
 }
