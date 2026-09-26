@@ -19,7 +19,13 @@ export function bearer(request) {
   return (request.headers.get('authorization') ?? '').replace(/^Bearer\s+/i, '');
 }
 
-/** Wraps a handler so bad input answers 400 and missing config 500, with a log line. */
+import { ConfigError } from './config.js';
+
+/**
+ * Wraps a handler: bad input answers 400; failures answer 500 with a
+ * category that is safe to show (a missing setting's name, or Stripe's
+ * error type and code, never a key or message), plus a full log line.
+ */
 export function handle(fn) {
   return async (request) => {
     try {
@@ -27,7 +33,15 @@ export function handle(fn) {
     } catch (error) {
       if (error instanceof BadRequest) return json(400, { error: error.message });
       console.error(error);
-      return json(500, { error: 'server_error' });
+      return json(500, describeFailure(error));
     }
   };
+}
+
+export function describeFailure(error) {
+  if (error instanceof ConfigError) return { error: 'not_configured', setting: error.setting };
+  if (typeof error?.type === 'string' && error.type.startsWith('Stripe')) {
+    return { error: 'stripe_error', type: error.type, code: error.code ?? null };
+  }
+  return { error: 'server_error' };
 }

@@ -49,3 +49,14 @@ test('models lists both plans', async () => {
   const { plans } = await (await GET()).json();
   assert.deepEqual(Object.keys(plans), ['pro', 'pro_max']);
 });
+
+test('failures name the missing setting or Stripe error type, never secrets', async () => {
+  const { describeFailure } = await import('../api/_lib/http.js');
+  const { ConfigError } = await import('../api/_lib/config.js');
+  assert.deepEqual(describeFailure(new ConfigError('STRIPE_SECRET_KEY')), { error: 'not_configured', setting: 'STRIPE_SECRET_KEY' });
+  const stripeError = Object.assign(new Error('Invalid API Key provided: sk_live_****1234'), { type: 'StripeAuthenticationError', code: undefined });
+  const described = describeFailure(stripeError);
+  assert.deepEqual(described, { error: 'stripe_error', type: 'StripeAuthenticationError', code: null });
+  assert.ok(!JSON.stringify(described).includes('sk_live'));
+  assert.deepEqual(describeFailure(new Error('boom')), { error: 'server_error' });
+});

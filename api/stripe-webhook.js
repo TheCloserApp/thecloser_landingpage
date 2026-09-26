@@ -5,8 +5,8 @@
 //   customer.subscription.deleted
 // A failure answers 500, and Stripe retries.
 
-import { env } from './_lib/config.js';
-import { json } from './_lib/http.js';
+import { ConfigError, env } from './_lib/config.js';
+import { describeFailure, json } from './_lib/http.js';
 import { stripe } from './_lib/stripe.js';
 import { syncSubscription } from './_lib/subscriptions.js';
 
@@ -19,6 +19,7 @@ export async function POST(request) {
       env('STRIPE_WEBHOOK_SECRET'),
     );
   } catch (error) {
+    if (error instanceof ConfigError) return json(500, describeFailure(error));
     console.error('Rejected webhook:', error.message);
     return json(400, { error: 'invalid_signature' });
   }
