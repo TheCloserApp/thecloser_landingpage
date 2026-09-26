@@ -10,7 +10,7 @@ const post = (body, headers = {}) =>
   new Request('https://example.test', { method: 'POST', body: JSON.stringify(body), headers });
 
 test('each endpoint exports its HTTP method', async () => {
-  const expected = { checkout: 'POST', 'stripe-webhook': 'POST', pass: 'POST', chat: 'POST', usage: 'GET', portal: 'POST', models: 'GET', 'model-request': 'POST' };
+  const expected = { checkout: 'POST', 'stripe-webhook': 'POST', pass: 'POST', chat: 'POST', usage: 'GET', portal: 'POST', models: 'GET', 'model-request': 'POST', upgrade: 'POST' };
   for (const [file, method] of Object.entries(expected)) {
     const module = await import(`../api/${file}.js`);
     assert.equal(typeof module[method], 'function', `${file} exports ${method}`);

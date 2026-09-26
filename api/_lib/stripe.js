@@ -1,5 +1,5 @@
 import Stripe from 'stripe';
-import { env, planForLookupKey } from './config.js';
+import { PLANS, env, planForLookupKey } from './config.js';
 
 let client;
 
@@ -12,6 +12,14 @@ export const LIVE_STATUSES = new Set(['active', 'trialing']);
 
 export function isLive(subscription) {
   return LIVE_STATUSES.has(subscription?.status);
+}
+
+/** The plan's current Stripe price (found by lookup key), or null. */
+export async function activePrice(plan) {
+  const prices = await stripe().prices.list({ lookup_keys: [PLANS[plan].lookupKey], active: true, limit: 1 });
+  const price = prices.data[0] ?? null;
+  if (!price) console.error(`No active Stripe price with lookup key ${PLANS[plan].lookupKey}`);
+  return price;
 }
 
 /** "pro" / "pro_max", from the price's lookup key. */
