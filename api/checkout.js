@@ -4,7 +4,7 @@
 
 import { DEVICE_PATTERN, PLANS, SITE_URL } from './_lib/config.js';
 import { handle, json, readJSON } from './_lib/http.js';
-import { findLiveSubscription, stripe } from './_lib/stripe.js';
+import { activePrice, findLiveSubscription, stripe } from './_lib/stripe.js';
 
 export const POST = handle(async (request) => {
   const { device, plan } = await readJSON(request);
@@ -13,12 +13,8 @@ export const POST = handle(async (request) => {
 
   if (await findLiveSubscription(device)) return json(409, { error: 'already_subscribed' });
 
-  const prices = await stripe().prices.list({ lookup_keys: [PLANS[plan].lookupKey], active: true, limit: 1 });
-  const price = prices.data[0];
-  if (!price) {
-    console.error(`No active Stripe price with lookup key ${PLANS[plan].lookupKey}`);
-    return json(500, { error: 'price_missing' });
-  }
+  const price = await activePrice(plan);
+  if (!price) return json(500, { error: 'price_missing' });
 
   const session = await stripe().checkout.sessions.create({
     mode: 'subscription',

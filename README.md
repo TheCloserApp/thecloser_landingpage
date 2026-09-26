@@ -53,6 +53,7 @@ The app is ad-hoc signed, not notarized, so macOS blocks it on first launch. Use
 | `POST /api/chat` | OpenAI-compatible, streaming. Checks the pass and the plan's models, then forwards to OpenRouter with the subscriber's key. |
 | `GET /api/usage` | This billing period's allowance: used, remaining, and when it resets. |
 | `POST /api/portal` | Opens Stripe's customer portal (cancel, change plan, card) for this subscription. |
+| `POST /api/upgrade` | Pro → Pro Max: opens Stripe's page confirming the switch and its prorated charge. Needs "customers can switch plans" in the portal settings. |
 | `GET /api/models` | Each plan's models and allowance. Plans live in `api/_lib/config.js`. |
 | `POST /api/model-request` `{model, note?, plan?, source?}` | "Request a model" from `/request-model` (the app links there). Saves each request as a private JSON file under `model-requests/` in the project's Blob store, with nothing that identifies the sender. Read them in Vercel → Storage → the Blob store → Browser. |
 
