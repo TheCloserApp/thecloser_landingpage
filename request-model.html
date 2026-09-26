@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>Request a model · TheCloser</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;650&display=swap" rel="stylesheet" />
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #000; color: #ededed;
+           font-family: "Geist", -apple-system, BlinkMacSystemFont, sans-serif; -webkit-font-smoothing: antialiased; }
+    main { width: 100%; max-width: 440px; padding: 24px 16px; }
+    .mark { width: 32px; height: 32px; display: block; }
+    h1 { font-size: 28px; font-weight: 650; letter-spacing: -.03em; margin: 18px 0 8px; color: #fff; }
+    p { color: #a1a1a1; line-height: 1.6; margin: 0 0 24px; }
+    label { display: block; font-size: 13px; font-weight: 500; color: #ededed; margin: 0 0 6px; }
+    .optional { color: #707070; font-weight: 400; }
+    input, textarea { width: 100%; font: inherit; font-size: 14px; color: #fff; background: #0a0a0a;
+                      border: 1px solid #2e2e2e; border-radius: 8px; padding: 10px 12px; margin: 0 0 16px; }
+    textarea { min-height: 96px; resize: vertical; }
+    input:focus, textarea:focus { outline: none; border-color: #707070; }
+    input::placeholder, textarea::placeholder { color: #5a5a5a; }
+    .trap { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+    button { width: 100%; font: inherit; font-size: 14px; font-weight: 500; color: #000; background: #ededed;
+             border: 0; border-radius: 8px; padding: 11px; cursor: pointer; }
+    button:hover { background: #fff; }
+    button:disabled { opacity: .5; cursor: default; }
+    .status { font-size: 13px; color: #a1a1a1; margin: 12px 0 0; min-height: 20px; }
+    .status.error { color: #ff6166; }
+    .done { display: none; }
+    .done p { margin: 0; }
+  </style>
+</head>
+<body>
+  <main>
+    <svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><rect x="4.3" y="9.8" width="2.35" height="4.4" rx="1.17" fill="#fff"/><rect x="7.85" y="7.3" width="2.35" height="9.4" rx="1.17" fill="#fff"/><rect x="11.4" y="4.9" width="2.35" height="14.2" rx="1.17" fill="#fff"/><rect x="14.95" y="7.9" width="2.35" height="8.2" rx="1.17" fill="#fff"/><rect x="18.5" y="10.4" width="2.35" height="3.2" rx="1.17" fill="#fff"/></svg>
+
+    <form id="request">
+      <h1>Request a model</h1>
+      <p>Tell us which model you'd like in TheCloser. We read every request.</p>
+
+      <label for="model">Model</label>
+      <input id="model" name="model" maxlength="120" required autocomplete="off"
+             placeholder="e.g. DeepSeek V4, Llama 5, Mistral Large" />
+
+      <label for="note">What would you use it for? <span class="optional">Optional</span></label>
+      <textarea id="note" name="note" maxlength="1000"
+                placeholder="Coding interviews, a language it's better at…"></textarea>
+
+      <div class="trap" aria-hidden="true">
+        <label for="website">Website</label>
+        <input id="website" name="website" tabindex="-1" autocomplete="off" />
+      </div>
+
+      <button type="submit">Send request</button>
+      <div class="status" id="status" role="status"></div>
+    </form>
+
+    <div class="done" id="done">
+      <h1>Thanks.</h1>
+      <p>Your request is in. New models show up in the app's model menu once they're added.</p>
+    </div>
+  </main>
+
+  <script>
+    const form = document.getElementById('request');
+    const status = document.getElementById('status');
+    const params = new URLSearchParams(location.search);
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const button = form.querySelector('button');
+      button.disabled = true;
+      status.className = 'status';
+      status.textContent = 'Sending…';
+      try {
+        const response = await fetch('/api/model-request', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: form.model.value,
+            note: form.note.value,
+            website: form.website.value,
+            plan: params.get('plan'),
+            source: params.get('source') === 'app' ? 'app' : 'web',
+          }),
+        });
+        if (!response.ok) throw new Error(String(response.status));
+        form.style.display = 'none';
+        document.getElementById('done').style.display = 'block';
+      } catch {
+        status.className = 'status error';
+        status.textContent = "That didn't go through. Please try again in a moment.";
+        button.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
