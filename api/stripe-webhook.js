@@ -3,12 +3,13 @@
 //   checkout.session.completed
 //   customer.subscription.updated
 //   customer.subscription.deleted
+//   invoice.paid
 // A failure answers 500, and Stripe retries.
 
 import { ConfigError, env } from './_lib/config.js';
 import { describeFailure, json } from './_lib/http.js';
 import { stripe } from './_lib/stripe.js';
-import { syncSubscription } from './_lib/subscriptions.js';
+import { renewedSubscriptionId, startNewPeriod, syncSubscription } from './_lib/subscriptions.js';
 
 export async function POST(request) {
   let event;
@@ -29,15 +30,20 @@ export async function POST(request) {
       case 'checkout.session.completed': {
         const session = event.data.object;
         if (session.mode === 'subscription' && session.subscription) {
-          const subscription = await stripe().subscriptions.retrieve(session.subscription);
-          await syncSubscription(subscription, { allowCreate: true });
+          await syncSubscription(session.subscription, { allowCreate: true });
         }
         break;
       }
       case 'customer.subscription.updated':
       case 'customer.subscription.deleted':
-        await syncSubscription(event.data.object, { allowCreate: false });
+        await syncSubscription(event.data.object.id, { allowCreate: false });
         break;
+      case 'invoice.paid': {
+        // Only renewals start a new allowance; the first invoice is covered by checkout.
+        const subscriptionId = renewedSubscriptionId(event.data.object);
+        if (subscriptionId) await startNewPeriod(subscriptionId, event.data.object.id);
+        break;
+      }
     }
   } catch (error) {
     console.error(`Handling ${event.type} ${event.id} failed:`, error);
