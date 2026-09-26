@@ -48,14 +48,14 @@ The app is ad-hoc signed, not notarized, so macOS blocks it on first launch. Use
 | Endpoint | What it does |
 |---|---|
 | `POST /api/checkout` `{device, plan}` | Starts Stripe Checkout. The Mac's fingerprint is stored on the subscription, which locks it to that Mac. |
-| `POST /api/stripe-webhook` | On checkout, creates the subscriber's own OpenRouter key with a monthly cap. On cancellation or failed payment, disables it. |
+| `POST /api/stripe-webhook` | On checkout, creates the subscriber's own OpenRouter key, capped at one allowance. Each paid renewal (`invoice.paid`) adds a fresh allowance, so it resets on the subscriber's billing date. On cancellation or failed payment, disables the key. |
 | `POST /api/pass` `{device, pass?}` | Returns a signed pass valid for 1 hour. The app renews it about hourly, so a cancellation takes effect within an hour. |
 | `POST /api/chat` | OpenAI-compatible, streaming. Checks the pass and the plan's models, then forwards to OpenRouter with the subscriber's key. |
-| `GET /api/usage` | This month's allowance: limit, remaining, used. |
+| `GET /api/usage` | This billing period's allowance: used, remaining, and when it resets. |
 | `POST /api/portal` | Opens Stripe's customer portal (cancel, change plan, card) for this subscription. |
 | `GET /api/models` | Each plan's models and allowance. Plans live in `api/_lib/config.js`. |
 
-The subscription's Stripe metadata holds `device`, `plan`, `or_hash` and `or_key`. `or_key` is the subscriber's OpenRouter key, encrypted with AES-256-GCM. The pass carries the same encrypted key, so `/api/chat` needs no lookups.
+The subscription's Stripe metadata holds `device`, `plan`, `or_hash`, `or_key`, `or_base` and `or_period`. `or_key` is the subscriber's OpenRouter key, encrypted with AES-256-GCM. The pass carries the same encrypted key, so `/api/chat` needs no lookups. `or_base` is what the key had spent when the current billing period began, and the key's cap is always `or_base` plus the plan's allowance.
 
 ### Settings (Vercel → Project → Settings → Environment Variables)
 

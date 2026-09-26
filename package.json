@@ -6,7 +6,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "test": "node --test"
+    "test": "node --test --experimental-test-module-mocks"
   },
   "dependencies": {
     "stripe": "^22.6.2"

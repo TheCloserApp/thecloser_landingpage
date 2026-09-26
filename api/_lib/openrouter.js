@@ -1,6 +1,8 @@
 // OpenRouter key management, with the management (provisioning) key.
-// Each subscriber gets their own key with a monthly spending cap, which
-// OpenRouter enforces and resets at the start of each UTC month.
+// Each subscriber gets their own key with a spending cap that OpenRouter
+// enforces. The cap never resets by itself: each paid renewal raises it
+// by one allowance (see subscriptions.js), so the allowance follows the
+// subscriber's billing date rather than the calendar month.
 
 import { env } from './config.js';
 
@@ -24,7 +26,7 @@ async function manage(path, init = {}) {
 export async function createKey({ name, limitUSD }) {
   const result = await manage('/keys', {
     method: 'POST',
-    body: JSON.stringify({ name, limit: limitUSD, limit_reset: 'monthly' }),
+    body: JSON.stringify({ name, limit: limitUSD }),
   });
   return { hash: result.data.hash, key: result.key };
 }
@@ -33,7 +35,8 @@ export async function updateKey(hash, fields) {
   await manage(`/keys/${encodeURIComponent(hash)}`, { method: 'PATCH', body: JSON.stringify(fields) });
 }
 
-export async function keyUsage(hash) {
+/** Everything the key has ever spent, and its cap. OpenRouter's figures lag about a minute. */
+export async function keyStatus(hash) {
   const { data } = await manage(`/keys/${encodeURIComponent(hash)}`);
-  return { limitUSD: data.limit, remainingUSD: data.limit_remaining, usedThisMonthUSD: data.usage_monthly };
+  return { totalUsageUSD: data.usage, limitUSD: data.limit, remainingUSD: data.limit_remaining };
 }
