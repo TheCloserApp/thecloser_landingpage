@@ -41,8 +41,9 @@ export class ConfigError extends Error {
   }
 }
 
+/** A setting's value, without the spaces or line breaks that pasting into Vercel can add. */
 export function env(name) {
-  const value = process.env[name];
+  const value = process.env[name]?.trim();
   if (!value) throw new ConfigError(name);
   return value;
 }
