@@ -2,6 +2,9 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "cleanUrls": true,
   "trailingSlash": false,
+  "functions": {
+    "api/chat.js": { "maxDuration": 60 }
+  },
   "redirects": [
     {
       "source": "/thecloser.dmg",

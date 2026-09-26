@@ -1,0 +1,14 @@
+{
+  "name": "thecloser-site",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "dependencies": {
+    "stripe": "^22.6.2"
+  }
+}
