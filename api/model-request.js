@@ -6,7 +6,7 @@
 // that fill it in get a normal answer and nothing is saved.
 
 import { put } from '@vercel/blob';
-import { env } from './_lib/config.js';
+import { ConfigError } from './_lib/config.js';
 import { BadRequest, handle, json, readJSON } from './_lib/http.js';
 
 const PLANS = new Set(['pro', 'pro_max', 'own_keys']);
@@ -15,6 +15,17 @@ const SOURCES = new Set(['app', 'web']);
 /** Trimmed text of at most `max` characters, or '' for anything that isn't a string. */
 function text(value, max) {
   return typeof value === 'string' ? value.trim().slice(0, max) : '';
+}
+
+/**
+ * A connected Blob store gives the project BLOB_STORE_ID (the library then
+ * signs in with the deployment's OIDC token) or, for older stores,
+ * BLOB_READ_WRITE_TOKEN.
+ */
+function requireBlobStore() {
+  if (!process.env.BLOB_STORE_ID?.trim() && !process.env.BLOB_READ_WRITE_TOKEN?.trim()) {
+    throw new ConfigError('BLOB_STORE_ID or BLOB_READ_WRITE_TOKEN');
+  }
 }
 
 export const POST = handle(async (request) => {
@@ -32,12 +43,12 @@ export const POST = handle(async (request) => {
     receivedAt: new Date().toISOString(),
   };
 
+  requireBlobStore();
   const day = record.receivedAt.slice(0, 10);
   await put(`model-requests/${day}/request.json`, JSON.stringify(record, null, 2), {
     access: 'private',
     addRandomSuffix: true,
     contentType: 'application/json',
-    token: env('BLOB_READ_WRITE_TOKEN'),
   });
   return json(200, { ok: true });
 });

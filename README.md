@@ -66,7 +66,7 @@ The subscription's Stripe metadata holds `device`, `plan`, `or_hash`, `or_key`, 
 | `STRIPE_SECRET_KEY` | Stripe → Developers → API keys → Secret key |
 | `STRIPE_WEBHOOK_SECRET` | Stripe → Developers → Webhooks → your endpoint → Signing secret |
 | `OPENROUTER_MANAGEMENT_KEY` | OpenRouter → Settings → Provisioning (management) keys |
-| `BLOB_READ_WRITE_TOKEN` | Set by Vercel when a **private** Blob store is connected to the project (Storage → Create → Blob). Used by `/api/model-request`. |
+| `BLOB_STORE_ID` | Set by Vercel when a **private** Blob store is connected to the project (Storage → Create → Blob). Used by `/api/model-request`, which signs in with the deployment's OIDC token. Older stores set `BLOB_READ_WRITE_TOKEN` instead, which also works. |
 | `PASS_SECRET` | Any long random string, e.g. `openssl rand -hex 32`. Changing it signs everyone out, and existing subscribers' stored keys can no longer be decrypted, so set it once. |
 
 Stripe prices are found by lookup key: `pro_monthly` and `pro_max_monthly`.
