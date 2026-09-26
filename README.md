@@ -41,6 +41,40 @@ gh release create v3.1 TheCloser.dmg --repo TheCloserApp/MAC --title "TheCloser 
 
 The app is ad-hoc signed, not notarized, so macOS blocks it on first launch. Users need to open **System Settings → Privacy & Security** and click **Open Anyway**. Removing that step requires signing with an Apple Developer ID and notarizing. The build is Apple Silicon only.
 
+## Pro API
+
+`api/` holds the Vercel Functions behind TheCloser Pro, the paid plan with no keys. There's no database and no account: Stripe is the only record, and customers are identified by an anonymous fingerprint of their Mac.
+
+| Endpoint | What it does |
+|---|---|
+| `POST /api/checkout` `{device, plan}` | Starts Stripe Checkout. The Mac's fingerprint is stored on the subscription, which locks it to that Mac. |
+| `POST /api/stripe-webhook` | On checkout, creates the subscriber's own OpenRouter key with a monthly cap. On cancellation or failed payment, disables it. |
+| `POST /api/pass` `{device, pass?}` | Returns a signed pass valid for 1 hour. The app renews it about hourly, so a cancellation takes effect within an hour. |
+| `POST /api/chat` | OpenAI-compatible, streaming. Checks the pass and the plan's models, then forwards to OpenRouter with the subscriber's key. |
+| `GET /api/usage` | This month's allowance: limit, remaining, used. |
+| `POST /api/portal` | Opens Stripe's customer portal (cancel, change plan, card) for this subscription. |
+| `GET /api/models` | Each plan's models and allowance. Plans live in `api/_lib/config.js`. |
+
+The subscription's Stripe metadata holds `device`, `plan`, `or_hash` and `or_key`. `or_key` is the subscriber's OpenRouter key, encrypted with AES-256-GCM. The pass carries the same encrypted key, so `/api/chat` needs no lookups.
+
+### Settings (Vercel → Project → Settings → Environment Variables)
+
+| Name | Where it comes from |
+|---|---|
+| `STRIPE_SECRET_KEY` | Stripe → Developers → API keys → Secret key |
+| `STRIPE_WEBHOOK_SECRET` | Stripe → Developers → Webhooks → your endpoint → Signing secret |
+| `OPENROUTER_MANAGEMENT_KEY` | OpenRouter → Settings → Provisioning (management) keys |
+| `PASS_SECRET` | Any long random string, e.g. `openssl rand -hex 32`. Changing it signs everyone out, and existing subscribers' stored keys can no longer be decrypted, so set it once. |
+
+Stripe prices are found by lookup key: `pro_monthly` and `pro_max_monthly`.
+
+### Tests
+
+```bash
+npm install
+npm test
+```
+
 ## License
 
 MIT
