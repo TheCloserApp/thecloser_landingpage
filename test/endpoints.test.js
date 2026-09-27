@@ -10,7 +10,7 @@ const post = (body, headers = {}) =>
   new Request('https://example.test', { method: 'POST', body: JSON.stringify(body), headers });
 
 test('each endpoint exports its HTTP method', async () => {
-  const expected = { checkout: 'POST', 'stripe-webhook': 'POST', pass: 'POST', chat: 'POST', usage: 'GET', portal: 'POST', models: 'GET', 'model-request': 'POST', upgrade: 'POST' };
+  const expected = { checkout: 'POST', 'stripe-webhook': 'POST', pass: 'POST', chat: 'POST', usage: 'GET', portal: 'POST', models: 'GET', plans: 'GET', 'model-request': 'POST', upgrade: 'POST' };
   for (const [file, method] of Object.entries(expected)) {
     const module = await import(`../api/${file}.js`);
     assert.equal(typeof module[method], 'function', `${file} exports ${method}`);
@@ -22,6 +22,10 @@ test('checkout and pass reject a malformed device before touching Stripe', async
   const { POST: pass } = await import('../api/pass.js');
   assert.equal((await checkout(post({ device: 'nope', plan: 'pro' }))).status, 400);
   assert.equal((await pass(post({ device: "x' OR 1" }))).status, 400);
+  for (const plan of ['__proto__', 'constructor', 'toString', {}, ['pro']]) {
+    assert.equal((await checkout(post({ device: 'a'.repeat(64), plan }))).status, 400);
+  }
+  for (const body of [null, [], 'text', 5]) assert.equal((await checkout(post(body))).status, 400);
 });
 
 test('chat, usage and portal refuse requests without a valid pass', async () => {

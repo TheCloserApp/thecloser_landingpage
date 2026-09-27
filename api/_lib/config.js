@@ -25,14 +25,17 @@ export const PLANS = {
   pro_max: { name: 'Pro Max', lookupKey: 'pro_max_monthly', allowanceUSD: 20, models: [...STANDARD_MODELS, ...PREMIUM_MODELS] },
 };
 
+export const isPlan = (plan) => typeof plan === 'string' && Object.hasOwn(PLANS, plan);
+
 export function planForLookupKey(lookupKey) {
   return Object.keys(PLANS).find((plan) => PLANS[plan].lookupKey === lookupKey) ?? null;
 }
 
 export const SITE_URL = process.env.SITE_URL ?? 'https://www.thecloser.tech';
 
-/** The app's anonymous Mac fingerprint: a SHA-256 hex digest. */
+/** The app's anonymous device credential: a SHA-256 hex digest. */
 export const DEVICE_PATTERN = /^[a-f0-9]{64}$/;
+export const CHECKOUT_SESSION_PATTERN = /^cs_(?:test_|live_)?[A-Za-z0-9]{8,200}$/;
 
 export class ConfigError extends Error {
   constructor(setting) {

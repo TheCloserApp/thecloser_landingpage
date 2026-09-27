@@ -43,21 +43,22 @@ The app is ad-hoc signed, not notarized, so macOS blocks it on first launch. Use
 
 ## Pro API
 
-`api/` holds the Vercel Functions behind TheCloser Pro, the paid plan with no keys. There's no database and no account: Stripe is the only record, and customers are identified by an anonymous fingerprint of their Mac.
+`api/` holds the Vercel Functions behind TheCloser Pro, the paid plan for AI answers on Mac and Windows. There is no user account: Stripe holds the subscription and encrypted provider-key metadata. Each app identifies its installation with a device credential. Windows uses a random, DPAPI-protected credential; Mac uses its existing device fingerprint.
 
 | Endpoint | What it does |
 |---|---|
-| `POST /api/checkout` `{device, plan}` | Starts Stripe Checkout. The Mac's fingerprint is stored on the subscription, which locks it to that Mac. |
+| `POST /api/checkout` `{device, plan, requestId?}` | Starts or reuses Stripe Checkout for this device. Returns `{url, sessionId}`. A stable optional request ID makes retries idempotent. Existing unpaid subscriptions are sent to billing recovery instead of charged twice. |
 | `POST /api/stripe-webhook` | On checkout, creates the subscriber's own OpenRouter key, capped at one allowance. Each paid renewal (`invoice.paid`) adds a fresh allowance, so it resets on the subscriber's billing date. On cancellation or failed payment, disables the key. |
-| `POST /api/pass` `{device, pass?}` | Returns a signed pass valid for 1 hour. The app renews it about hourly, so a cancellation takes effect within an hour. |
+| `POST /api/pass` `{device, pass?, checkoutSessionId?}` | Returns a signed pass valid for 1 hour only after a paid current invoice. An optional Checkout session ID bypasses Stripe search indexing delays; pending payments return 409. The app renews it about hourly, so a cancellation takes effect within an hour. |
 | `POST /api/chat` | OpenAI-compatible, streaming. Checks the pass and the plan's models, then forwards to OpenRouter with the subscriber's key. |
 | `GET /api/usage` | This billing period's allowance: used, remaining, and when it resets. |
-| `POST /api/portal` | Opens Stripe's customer portal (cancel, change plan, card) for this subscription. |
+| `POST /api/portal` | Opens Stripe's customer portal (cancel, change plan, card) for this subscription. An expired signed pass can recover billing only with a matching `{device}` body and Stripe subscription ownership. It cannot authorize AI requests. |
 | `POST /api/upgrade` | Pro → Pro Max: opens Stripe's page confirming the switch and its prorated charge. Needs "customers can switch plans" in the portal settings. |
+| `GET /api/plans` | Returns current recurring Stripe prices and plan details from the same catalog used by Mac. Missing or unsuitable prices disable purchase. |
 | `GET /api/models` | Each plan's models and allowance. Plans live in `api/_lib/config.js`. |
 | `POST /api/model-request` `{model, note?, plan?, source?}` | "Request a model" from `/request-model` (the app links there). Saves each request as a private JSON file under `model-requests/` in the project's Blob store, with nothing that identifies the sender. Read them in Vercel → Storage → the Blob store → Browser. |
 
-The subscription's Stripe metadata holds `device`, `plan`, `or_hash`, `or_key`, `or_base` and `or_period`. `or_key` is the subscriber's OpenRouter key, encrypted with AES-256-GCM. The pass carries the same encrypted key, so `/api/chat` needs no lookups. `or_base` is what the key had spent when the current billing period began, and the key's cap is always `or_base` plus the plan's allowance.
+The subscription's Stripe metadata holds `device`, `plan`, `or_hash`, `or_key`, `or_base`, `or_period` and `or_period_start`. `or_key` is the subscriber's OpenRouter key, encrypted with AES-256-GCM. The pass carries the same encrypted key, so `/api/chat` needs no lookups. `or_base` is what the key had spent when the current billing period began, and the key's cap is always `or_base` plus the plan's allowance.
 
 ### Settings (Vercel → Project → Settings → Environment Variables)
 
@@ -69,7 +70,32 @@ The subscription's Stripe metadata holds `device`, `plan`, `or_hash`, `or_key`, 
 | `BLOB_STORE_ID` | Set by Vercel when a **private** Blob store is connected to the project (Storage → Create → Blob). Used by `/api/model-request`, which signs in with the deployment's OIDC token. Older stores set `BLOB_READ_WRITE_TOKEN` instead, which also works. |
 | `PASS_SECRET` | Any long random string, e.g. `openssl rand -hex 32`. Changing it signs everyone out, and existing subscribers' stored keys can no longer be decrypted, so set it once. |
 
-Stripe prices are found by lookup key: `pro_monthly` and `pro_max_monthly`.
+Stripe prices are found by lookup key: `pro_monthly` and `pro_max_monthly`. Reuse the existing **TheCloser Pro** and **TheCloser Pro Max** products for both platforms. Do not create Windows-specific products. Prices must be active, fixed-amount, licensed, monthly recurring prices. The app reads the actual amount and currency; the AI allowances ($8/$20) are independent of the subscription prices.
+
+### Stripe event destination and customer portal
+
+Keep the existing endpoint `https://www.thecloser.tech/api/stripe-webhook` and signing secret. Subscribe to:
+
+- `checkout.session.completed`
+- `checkout.session.async_payment_succeeded`
+- `checkout.session.async_payment_failed`
+- `customer.subscription.updated`
+- `customer.subscription.deleted`
+- `invoice.paid`
+- `invoice.payment_failed`
+- `invoice.payment_action_required`
+
+Invoice subscription IDs from the existing `2023-10-16` webhook shape and the current Stripe shape are both supported. The handler re-reads current Stripe state so delayed event snapshots do not reset a newer allowance or restore canceled access. Webhook signatures are checked against the raw request body.
+
+Enable Stripe Customer Portal payment-method updates, invoices, cancellation, and switching between these same two products. Upgrades open Stripe's confirmation screen; the desktop never confirms a charge itself. Pending or failed payments do not create new AI access. Successful recovery re-enables the existing key. Access already issued in a pass can remain cached for up to one hour, while disabled provider keys stop further use.
+
+### Deployment and verification
+
+Deploy this backend before distributing the Windows build in TheCloserApp/TheCloser. Existing Mac `/models`, checkout, pass, portal and upgrade contracts remain compatible; the Mac production feature flag is not changed here.
+
+Run `npm ci && npm test` (Node 22 or later for module-mock tests). Tests cover actual webhook-signature verification, the existing catalog, checkout retries and plan switches, pending/foreign checkout rejection, recovery, renewal ordering and both invoice formats. Then verify a Stripe sandbox subscription through purchase, renewal, failed payment, recovery, upgrade and end-of-period cancellation before enabling a production release. Keep test and live keys, prices and webhook secrets in the same mode.
+
+**Concurrency limit:** same-instance work is serialized and Stripe customer/checkout creation uses idempotency. Stripe metadata is not an atomic cross-instance store: simultaneous provisioning/renewals on different server instances can still race. New candidate keys start at zero allowance and disabled; unused candidates stay disabled. A durable per-device/per-subscription queue or lock is required before claiming exactly-once processing across a scaled deployment. No database or new cloud service is provisioned by these changes.
 
 ### Tests
 
