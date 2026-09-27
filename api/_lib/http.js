@@ -9,7 +9,9 @@ export async function readJSON(request, maxBytes = 64 * 1024) {
   const text = await request.text();
   if (text.length > maxBytes) throw new BadRequest('body_too_large');
   try {
-    return JSON.parse(text || '{}');
+    const body = JSON.parse(text || '{}');
+    if (!body || typeof body !== 'object' || Array.isArray(body)) throw new Error('invalid body');
+    return body;
   } catch {
     throw new BadRequest('invalid_json');
   }

@@ -1,92 +1,92 @@
-// Keeps each subscriber's OpenRouter key in step with their Stripe
-// subscription. Stripe is the only record: the subscription's metadata
-// holds `device`, `plan`, `or_hash`, `or_key` (the key, encrypted),
-// `or_base` (the key's total spend when the current billing period began)
-// and `or_period` (the renewal invoice that began it).
-//
-// The key's cap is always `or_base` + the plan's allowance. Each paid
-// renewal moves `or_base` up to the spend so far, which gives a fresh
-// allowance on the subscriber's billing date. A plan change mid-period
-// applies the new allowance to the current period.
-
-import { PLANS, env } from './config.js';
+// Stripe holds the billing state and encrypted per-subscriber key. Always
+// retrieve current state: webhook snapshots can be duplicated or reordered.
+import { DEVICE_PATTERN, PLANS, env } from './config.js';
 import { createKey, keyStatus, updateKey } from './openrouter.js';
 import { encryptSecret } from './pass.js';
-import { isLive, planOf, stripe } from './stripe.js';
+import { serial } from './serial.js';
+import { isLive, objectId, planOf, stripe } from './stripe.js';
 
 const roundUSD = (value) => Math.round(value * 1e6) / 1e6;
-
-/** The key's cap for the current period. */
 export function periodLimit(metadata, plan) {
   return roundUSD(Number(metadata?.or_base ?? 0) + PLANS[plan].allowanceUSD);
 }
 
-/**
- * Brings the key in line with the subscription. Live: make sure the key
- * exists, is enabled and capped for its plan. Anything else: disable it.
- *
- * Reads the subscription fresh rather than trusting the event's copy:
- * Stripe can deliver events late or out of order, and old metadata would
- * undo a renewal's new cap.
- *
- * Only `checkout.session.completed` may create a key (`allowCreate`).
- * Stripe sends several events per checkout, and letting each of them
- * create one could leave a subscription with two keys.
- *
- * Idempotent: writing metadata here triggers another
- * `customer.subscription.updated`, which then finds nothing to change.
- */
-export async function syncSubscription(subscriptionId, { allowCreate }) {
-  const subscription = await stripe().subscriptions.retrieve(subscriptionId);
-  const plan = planOf(subscription);
-  const live = isLive(subscription) && plan !== null;
-  const metadata = subscription.metadata ?? {};
-
-  if (!metadata.or_hash) {
-    if (!live || !allowCreate) return;
-    const { hash, key } = await createKey({
-      name: `TheCloser ${plan} ${subscription.id}`,
-      limitUSD: periodLimit({}, plan),
-    });
-    await stripe().subscriptions.update(subscription.id, {
-      metadata: { plan, or_hash: hash, or_key: encryptSecret(key, env('PASS_SECRET')), or_base: '0' },
-    });
-    return;
-  }
-
-  if (live) {
-    await updateKey(metadata.or_hash, { disabled: false, limit: periodLimit(metadata, plan), limit_reset: null });
-    if (metadata.plan !== plan) await stripe().subscriptions.update(subscription.id, { metadata: { plan } });
-  } else {
-    await updateKey(metadata.or_hash, { disabled: true });
-  }
+export function invoiceSubscriptionId(invoice) {
+  // Support both the current Stripe shape and older webhook API versions.
+  return objectId(invoice?.parent?.subscription_details?.subscription ?? invoice?.subscription);
 }
-
-/** The subscription a renewal invoice belongs to, or null for any other invoice. */
 export function renewedSubscriptionId(invoice) {
-  if (invoice?.billing_reason !== 'subscription_cycle') return null;
-  const subscription = invoice.parent?.subscription_details?.subscription;
-  return typeof subscription === 'string' ? subscription : subscription?.id ?? null;
+  return invoice?.billing_reason === 'subscription_cycle' ? invoiceSubscriptionId(invoice) : null;
 }
 
-/**
- * A renewal was paid: start a new period with a full allowance. Stripe can
- * send the same invoice twice; `or_period` keeps the second time from
- * moving the base again, and the cap is simply applied again.
- */
-export async function startNewPeriod(subscriptionId, invoiceId) {
-  const subscription = await stripe().subscriptions.retrieve(subscriptionId);
-  const plan = planOf(subscription);
-  let metadata = subscription.metadata ?? {};
-  if (!metadata.or_hash || !plan) return;
+export async function latestInvoice(subscription) {
+  const invoice = subscription?.latest_invoice;
+  return typeof invoice === 'string' ? stripe().invoices.retrieve(invoice) : invoice ?? null;
+}
+export const invoiceIsPaid = (invoice) => invoice?.status === 'paid';
 
-  if (metadata.or_period !== invoiceId) {
-    const { totalUsageUSD } = await keyStatus(metadata.or_hash);
-    const period = { or_base: String(roundUSD(totalUsageUSD)), or_period: invoiceId };
-    await stripe().subscriptions.update(subscriptionId, { metadata: period });
-    metadata = { ...metadata, ...period };
-  }
-  await updateKey(metadata.or_hash, { limit: periodLimit(metadata, plan), limit_reset: null });
+/** Only a current, paid invoice enables service, including delayed payments.
+ * Same-instance calls serialize; Stripe metadata is not a distributed lock.
+ * Keys start disabled so a metadata-write failure leaves no usable orphan.
+ */
+export async function syncSubscription(subscriptionId, { allowCreate = false } = {}) {
+  return serial(`subscription:${subscriptionId}`, async () => {
+    let subscription = await stripe().subscriptions.retrieve(subscriptionId, { expand: ['latest_invoice'] });
+    const plan = planOf(subscription);
+    let metadata = subscription.metadata ?? {};
+    const invoice = await latestInvoice(subscription);
+    const entitled = isLive(subscription) && plan !== null
+      && DEVICE_PATTERN.test(metadata.device ?? '') && invoiceIsPaid(invoice);
+    if (!entitled) {
+      if (metadata.or_hash) await updateKey(metadata.or_hash, { disabled: true });
+      return subscription;
+    }
+    const periodStart = subscription.items?.data?.[0]?.current_period_start
+      ?? subscription.current_period_start ?? invoice.period_start;
+    if (!Number.isSafeInteger(periodStart) || periodStart <= 0) throw new Error('Subscription has no billing period start');
+
+    if (!metadata.or_hash) {
+      if (!allowCreate) return subscription;
+      // Check encryption configuration before creating anything remotely.
+      const secret = env('PASS_SECRET');
+      const { hash, key } = await createKey({
+        name: `TheCloser ${plan} ${subscription.id}`,
+        limitUSD: periodLimit({}, plan), disabled: true,
+      });
+      await stripe().subscriptions.update(subscription.id, { metadata: {
+        plan, or_hash: hash, or_key: encryptSecret(key, secret), or_base: '0',
+        or_period: invoice.id, or_period_start: String(periodStart),
+      } });
+      subscription = await stripe().subscriptions.retrieve(subscriptionId, { expand: ['latest_invoice'] });
+      metadata = subscription.metadata;
+      // A concurrent writer may have won; leave our unused candidate disabled.
+      if (metadata.or_hash !== hash) return subscription;
+    } else {
+      const savedStart = Number(metadata.or_period_start ?? 0);
+      const legacyRenewal = !savedStart && invoice.billing_reason === 'subscription_cycle' && metadata.or_period !== invoice.id;
+      if ((savedStart && periodStart > savedStart) || legacyRenewal) {
+        const { totalUsageUSD } = await keyStatus(metadata.or_hash);
+        const period = {
+          or_base: String(roundUSD(totalUsageUSD)), or_period: invoice.id,
+          or_period_start: String(periodStart),
+        };
+        await stripe().subscriptions.update(subscriptionId, { metadata: period });
+        metadata = { ...metadata, ...period };
+      } else if (!savedStart) {
+        // Migrate existing Mac subscribers without resetting their allowance.
+        await stripe().subscriptions.update(subscriptionId, { metadata: { or_period_start: String(periodStart) } });
+      }
+    }
+    await updateKey(metadata.or_hash, { disabled: false, limit: periodLimit(metadata, plan), limit_reset: null });
+    if (metadata.plan !== plan) await stripe().subscriptions.update(subscriptionId, { metadata: { plan } });
+    return stripe().subscriptions.retrieve(subscriptionId, { expand: ['latest_invoice'] });
+  });
+}
+
+// Retained for callers/tests; current Stripe state determines which period is
+// paid, so an old invoice can never refill a newer allowance a second time.
+export async function startNewPeriod(subscriptionId) {
+  return syncSubscription(subscriptionId, { allowCreate: true });
 }
 
 /** What the app shows: how much of this period's allowance is used, and when it resets. */

@@ -31,7 +31,7 @@ globalThis.fetch = async (url, init = {}) => {
   const body = init.body ? JSON.parse(init.body) : {};
   if (init.method === 'POST' && path === '/keys') {
     const hash = `hash${keys.size + 1}`;
-    keys.set(hash, { usage: 0, limit: body.limit, limit_reset: body.limit_reset ?? null, disabled: false });
+    keys.set(hash, { usage: 0, limit: body.limit, limit_reset: body.limit_reset ?? null, disabled: body.disabled ?? false });
     return Response.json({ data: { hash }, key: `key-${hash}` });
   }
   const key = keys.get(decodeURIComponent(path.split('/')[2]));
@@ -55,8 +55,9 @@ const PERIOD_END = 1792000000;
 const device = 'a'.repeat(64);
 subscriptions.set('sub_1', {
   id: 'sub_1', status: 'active', metadata: { device, plan: 'pro' },
+  latest_invoice: { id: 'in_1', status: 'paid', billing_reason: 'subscription_create' },
   cancel_at_period_end: false, cancel_at: null,
-  items: { data: [{ price: { lookup_key: 'pro_monthly' }, current_period_end: PERIOD_END }] },
+  items: { data: [{ price: { lookup_key: 'pro_monthly' }, current_period_start: PERIOD_END - 2500000, current_period_end: PERIOD_END }] },
 });
 const sub = () => subscriptions.get('sub_1');
 const key = () => keys.get(sub().metadata.or_hash);
@@ -69,7 +70,7 @@ async function checkUsage() {
 }
 
 test('a subscription gets a fresh allowance on each paid renewal, not on the 1st', async () => {
-  await deliver('checkout.session.completed', { mode: 'subscription', subscription: 'sub_1' });
+  await deliver('checkout.session.completed', { mode: 'subscription', subscription: 'sub_1', payment_status: 'paid' });
   assert.equal(key().limit, 8);
   assert.equal(key().limit_reset, null, 'OpenRouter never resets it on the calendar');
   assert.equal(sub().metadata.or_base, '0');
@@ -84,8 +85,14 @@ test('a subscription gets a fresh allowance on each paid renewal, not on the 1st
   key().usage = 8;
   assert.equal((await checkUsage()).remainingUSD, 0, 'capped until the renewal');
 
+  sub().items.data[0].current_period_start = PERIOD_END;
+  sub().latest_invoice = { ...renewal('in_2'), status: 'paid' };
   await deliver('invoice.paid', renewal('in_2'));
   assert.equal(key().limit, 16);
+
+  await deliver('invoice.paid', renewal('in_1'));
+  assert.equal(key().limit, 16, 'a delayed older invoice cannot refill the current period');
+  assert.equal(sub().metadata.or_base, '8');
   assert.equal(sub().metadata.or_period, 'in_2');
   shown = await checkUsage();
   assert.equal(shown.usedUSD, 0);
@@ -104,6 +111,16 @@ test('a subscription gets a fresh allowance on each paid renewal, not on the 1st
   assert.equal(key().limit, 28, 'an upgrade applies the Pro Max allowance to this period');
   assert.equal(sub().metadata.plan, 'pro_max');
 
+  sub().status = 'past_due';
+  sub().latest_invoice.status = 'open';
+  await deliver('invoice.payment_failed', renewal('in_2'));
+  assert.equal(key().disabled, true, 'failed payment disables access');
+  sub().status = 'active';
+  sub().latest_invoice.status = 'paid';
+  await deliver('invoice.paid', renewal('in_2'));
+  assert.equal(key().disabled, false, 'recovered payment restores access');
+  assert.equal(key().limit, 28, 'recovery does not add a second allowance');
+
   sub().cancel_at_period_end = true;
   assert.equal((await checkUsage()).renews, false, 'the app can say "Ends" instead of "Resets"');
 
@@ -111,6 +128,26 @@ test('a subscription gets a fresh allowance on each paid renewal, not on the 1st
   await deliver('customer.subscription.deleted', sub());
   assert.equal(key().disabled, true);
   assert.equal((await checkUsage()).status, 402);
+});
+
+test('delayed payment provisions only when the invoice is paid, and concurrent events reuse the key', async () => {
+  subscriptions.set('sub_delay', {
+    id: 'sub_delay', status: 'active', metadata: { device, plan: 'pro' },
+    latest_invoice: { id: 'in_delay', status: 'open', billing_reason: 'subscription_create' },
+    items: { data: [{ price: { lookup_key: 'pro_monthly' }, current_period_start: PERIOD_END }] },
+  });
+  const s = subscriptions.get('sub_delay');
+  await deliver('checkout.session.completed', { mode: 'subscription', subscription: s.id, payment_status: 'unpaid' });
+  assert.equal(s.metadata.or_hash, undefined);
+  s.latest_invoice.status = 'paid';
+  const count = keys.size;
+  await Promise.all([
+    deliver('checkout.session.async_payment_succeeded', { mode: 'subscription', subscription: s.id, payment_status: 'paid' }),
+    deliver('invoice.paid', { id: 'in_delay', subscription: s.id, status: 'paid' }),
+  ]);
+  assert.equal(keys.size, count + 1);
+  assert.equal(keys.get(s.metadata.or_hash).disabled, false);
+  assert.equal(keys.get(s.metadata.or_hash).limit, 8);
 });
 
 test('only renewal invoices start a new period', () => {

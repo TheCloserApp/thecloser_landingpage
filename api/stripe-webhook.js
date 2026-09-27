@@ -1,6 +1,9 @@
 // POST /api/stripe-webhook — Stripe's event notifications.
 // Register this URL in Stripe (Developers → Webhooks) for:
 //   checkout.session.completed
+//   checkout.session.async_payment_succeeded
+//   checkout.session.async_payment_failed
+//   invoice.payment_failed
 //   customer.subscription.updated
 //   customer.subscription.deleted
 //   invoice.paid
@@ -9,7 +12,7 @@
 import { ConfigError, env } from './_lib/config.js';
 import { describeFailure, json } from './_lib/http.js';
 import { stripe } from './_lib/stripe.js';
-import { renewedSubscriptionId, startNewPeriod, syncSubscription } from './_lib/subscriptions.js';
+import { invoiceSubscriptionId, syncSubscription } from './_lib/subscriptions.js';
 
 export async function POST(request) {
   let event;
@@ -27,10 +30,14 @@ export async function POST(request) {
 
   try {
     switch (event.type) {
-      case 'checkout.session.completed': {
+      case 'checkout.session.completed':
+      case 'checkout.session.async_payment_succeeded':
+      case 'checkout.session.async_payment_failed': {
         const session = event.data.object;
         if (session.mode === 'subscription' && session.subscription) {
-          await syncSubscription(session.subscription, { allowCreate: true });
+          await syncSubscription(typeof session.subscription === 'string' ? session.subscription : session.subscription.id, {
+            allowCreate: ['paid', 'no_payment_required'].includes(session.payment_status),
+          });
         }
         break;
       }
@@ -38,10 +45,11 @@ export async function POST(request) {
       case 'customer.subscription.deleted':
         await syncSubscription(event.data.object.id, { allowCreate: false });
         break;
+      case 'invoice.payment_failed':
+      case 'invoice.payment_action_required':
       case 'invoice.paid': {
-        // Only renewals start a new allowance; the first invoice is covered by checkout.
-        const subscriptionId = renewedSubscriptionId(event.data.object);
-        if (subscriptionId) await startNewPeriod(subscriptionId, event.data.object.id);
+        const subscriptionId = invoiceSubscriptionId(event.data.object);
+        if (subscriptionId) await syncSubscription(subscriptionId, { allowCreate: event.type === 'invoice.paid' });
         break;
       }
     }

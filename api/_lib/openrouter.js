@@ -23,11 +23,14 @@ async function manage(path, init = {}) {
 }
 
 /** Returns the key's hash (for later management) and the key itself (shown only once). */
-export async function createKey({ name, limitUSD }) {
+export async function createKey({ name, limitUSD, disabled = false }) {
   const result = await manage('/keys', {
     method: 'POST',
-    body: JSON.stringify({ name, limit: limitUSD }),
+    // Creation supports a spending limit; disabling is a separate PATCH.
+    // A zero-limit candidate cannot spend even if that PATCH fails.
+    body: JSON.stringify({ name, limit: disabled ? 0 : limitUSD }),
   });
+  if (disabled) await updateKey(result.data.hash, { disabled: true });
   return { hash: result.data.hash, key: result.key };
 }
 
