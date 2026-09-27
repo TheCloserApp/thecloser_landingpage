@@ -331,18 +331,6 @@
     .feat h3 { font-size: 16px; font-weight: 600; letter-spacing: -.01em; margin-top: 20px; color: #fff; }
     .feat p { font-size: 14px; color: var(--muted); margin-top: 8px; line-height: 1.65; }
 
-    /* ---------- session modes ---------- */
-    .sessions { padding: 0 0 120px; text-align: center; }
-    .sess-grid {
-      display: grid; grid-template-columns: repeat(4, 1fr);
-      gap: 1px; background: var(--border); border: 1px solid var(--border);
-      margin-top: 28px; text-align: left;
-    }
-    .sess { background: var(--bg); padding: 24px 22px 26px; transition: background .2s ease; }
-    .sess:hover { background: var(--panel); }
-    .sess h3 { font-size: 14px; font-weight: 600; color: #fff; letter-spacing: -.01em; }
-    .sess p { margin-top: 7px; font-size: 13px; color: var(--muted); line-height: 1.6; }
-
     /* ---------- hotkeys ---------- */
     .keys { padding: 0 0 120px; }
     .keys-grid {
@@ -413,7 +401,6 @@
       .desktop-window { left: 50%; top: 64px; width: min(540px, calc(100% - 40px)); transform: translateX(-50%); }
       .assistant-card { left: 50%; right: auto; top: 480px; width: min(430px, calc(100% - 48px)); transform: translateX(-50%); }
       .feat-grid { grid-template-columns: 1fr; }
-      .sess-grid { grid-template-columns: repeat(2, 1fr); }
       .keys-grid { grid-template-columns: 1fr; }
     }
     @media (max-width: 640px) {
@@ -430,8 +417,7 @@
       .assistant-card { top: 340px; }
       .a { min-height: 158px; }
       .features { padding: 96px 0; }
-      .sess-grid { grid-template-columns: 1fr; }
-      .sessions, .keys { padding-bottom: 96px; }
+      .keys { padding-bottom: 96px; }
       .faq { padding: 96px 0; }
       .faq-item summary { font-size: 15px; padding: 18px 2px; }
       .keyrow { padding: 13px 16px; }
@@ -503,7 +489,7 @@
         <div class="head">
           <span class="label" data-reveal>Live over any call</span>
           <h2 data-reveal>It floats where you need it.</h2>
-          <p data-reveal>TheCloser sits above your interview window and outside screen capture — flip to their view and watch it disappear.</p>
+          <p data-reveal>TheCloser floats above your interview window, even in full screen, and outside screen capture — flip to their view and watch it disappear.</p>
         </div>
 
         <div class="feat-outer" data-reveal>
@@ -584,58 +570,33 @@
             <div class="feat">
               <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12s3.5-6.5 9-6.5 9 6.5 9 6.5-3.5 6.5-9 6.5S3 12 3 12z"/><path d="M4 4l16 16"/></svg></div>
               <h3>Invisible on screen-share</h3>
-              <p>Every window is excluded from capture at the OS level — Zoom, Meet, Teams, and recordings see nothing. No menu-bar icon either.</p>
+              <p>Every window is excluded from capture at the OS level — Zoom, Meet, Teams, and recordings see nothing. Its menu-bar icon hides during calls, too.</p>
             </div>
             <div class="feat">
               <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16v10H8l-4 3.5z"/></svg></div>
               <h3>Answers as they ask</h3>
-              <p>The live transcript streams to the model the moment they finish. Interview mode leads with a verbatim opening line, then tight scannable bullets.</p>
+              <p>The moment they finish a question, the answer streams in: a line to open with, then tight bullets. Small talk is skipped, and ⌘⏎ answers right away.</p>
             </div>
             <div class="feat">
               <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 10v4"/></svg></div>
               <h3>Live transcription</h3>
-              <p>Mic or system audio, transcribed in real time — on-device with Apple Speech, or ElevenLabs Scribe with your key.</p>
+              <p>Mic or system audio, transcribed live in the language of your interview — on-device with Apple, or with ElevenLabs or Grok using your key.</p>
             </div>
             <div class="feat">
-              <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13.5 9 5 9-5"/></svg></div>
-              <h3>Floats over everything</h3>
-              <p>Always on top — every Space, even full-screen apps. Drag it anywhere, resize it, and it never steals focus from the window you're in.</p>
+              <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6.5" width="18" height="12.5" rx="2"/><circle cx="12" cy="12.75" r="3.25"/><path d="M8.5 6.5 10 4.5h4l1.5 2"/></svg></div>
+              <h3>Screenshot any question</h3>
+              <p>A coding problem or a slide on screen? ⌘⇧⏎ sends your screen to the model and answers what's on it.</p>
             </div>
             <div class="feat">
               <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/><path d="M10 12h5M10 15.5h5"/></svg></div>
-              <h3>Résumé tailoring</h3>
-              <p>Import your résumé, paste a job description, and export a tailored DOCX — with before/after match scoring.</p>
+              <h3>Knows your résumé</h3>
+              <p>Attach your résumé, the job description and any notes before you start. Every answer draws on them, for the whole interview.</p>
             </div>
             <div class="feat">
               <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M3 7.5h2M3 16.5h2M19 7.5h2M19 16.5h2"/></svg></div>
               <h3>Bring your own keys</h3>
-              <p>Seven providers, one picker. Keys are stored locally on your Mac — no markup, no middleman, nothing logged.</p>
+              <p>One OpenRouter key runs Claude, GPT, Gemini, Grok and Kimi; ElevenLabs transcribes. Keys stay on your Mac — no markup, no middleman.</p>
             </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- SESSION MODES -->
-    <section class="sessions" id="modes">
-      <div class="wrap">
-        <span class="label" data-reveal>Session modes</span>
-        <div class="sess-grid" data-reveal>
-          <div class="sess">
-            <h3>Interview</h3>
-            <p>Verbatim opening line plus scannable bullets, grounded in your résumé and the job description.</p>
-          </div>
-          <div class="sess">
-            <h3>Meeting</h3>
-            <p>Summaries, action items, decisions, and suggested questions as the meeting runs.</p>
-          </div>
-          <div class="sess">
-            <h3>Call</h3>
-            <p>Real-time assist on any regular call — context without breaking your flow.</p>
-          </div>
-          <div class="sess">
-            <h3>General</h3>
-            <p>A concise floating assistant for everything else you do on your Mac.</p>
           </div>
         </div>
       </div>
@@ -647,17 +608,15 @@
         <div class="head">
           <span class="label" data-reveal>Global hotkeys</span>
           <h2 data-reveal>Never touch the mouse.</h2>
-          <p data-reveal>Every core action fires system-wide — from any app, no Accessibility permission required.</p>
+          <p data-reveal>The ones you need mid-interview work from any app, with no Accessibility permission.</p>
         </div>
         <div class="keys-grid" data-reveal>
           <div class="keyrow"><span class="act">Show / hide the overlay</span><span class="kbd">⌃ ⌥ Space</span></div>
-          <div class="keyrow"><span class="act">Start / stop recording</span><span class="kbd">⌃ ⌥ T</span></div>
-          <div class="keyrow"><span class="act">Quick Ask by voice, push-to-talk</span><span class="kbd">hold Fn / 🌐</span></div>
-          <div class="keyrow"><span class="act">Dictate into the active app</span><span class="kbd">hold ⌥</span></div>
-          <div class="keyrow"><span class="act">Screenshot → explain</span><span class="kbd">⌃ ⌥ S</span></div>
-          <div class="keyrow"><span class="act">Explain the clipboard</span><span class="kbd">⌃ ⌥ C</span></div>
-          <div class="keyrow"><span class="act">Tailor a résumé from the clipboard</span><span class="kbd">⌃ ⌥ R</span></div>
-          <div class="keyrow"><span class="act">Move or resize the panel</span><span class="kbd">⌃ ⌥ / ⌃ ⇧ arrows</span></div>
+          <div class="keyrow"><span class="act">Get the answer now</span><span class="kbd">⌘ ⏎</span></div>
+          <div class="keyrow"><span class="act">Screenshot → answer</span><span class="kbd">⌘ ⇧ ⏎</span></div>
+          <div class="keyrow"><span class="act">New session</span><span class="kbd">⌘ N</span></div>
+          <div class="keyrow"><span class="act">Move the overlay</span><span class="kbd">⌘ ⇧ arrows</span></div>
+          <div class="keyrow"><span class="act">Resize the overlay</span><span class="kbd">⌃ ⇧ arrows</span></div>
         </div>
         <p class="keys-note" data-reveal>also included — session history · prompt library</p>
       </div>
@@ -666,21 +625,17 @@
     <!-- MODELS -->
     <div class="models" id="models">
       <div class="wrap">
-        <span class="label" data-reveal>Works with your keys</span>
+        <span class="label" data-reveal>One OpenRouter key, every model</span>
         <div class="row" data-reveal>
-          <span>Anthropic</span>
+          <span>Claude</span>
           <span class="dotsep" aria-hidden="true"></span>
-          <span>OpenAI</span>
+          <span>GPT</span>
+          <span class="dotsep" aria-hidden="true"></span>
+          <span>Gemini</span>
           <span class="dotsep" aria-hidden="true"></span>
           <span>Grok</span>
           <span class="dotsep" aria-hidden="true"></span>
-          <span>DeepSeek</span>
-          <span class="dotsep" aria-hidden="true"></span>
           <span>Kimi</span>
-          <span class="dotsep" aria-hidden="true"></span>
-          <span>NVIDIA NIM</span>
-          <span class="dotsep" aria-hidden="true"></span>
-          <span>OpenRouter</span>
         </div>
       </div>
     </div>
@@ -695,19 +650,19 @@
         <div class="faq-list" data-reveal>
           <details class="faq-item">
             <summary>Can the interviewer see TheCloser when I share my screen?</summary>
-            <p>No. Every TheCloser window, including its menus and popovers, is excluded from screen capture by macOS. Zoom, Google Meet, Microsoft Teams and screen recorders capture your screen without it, and there's no menu-bar icon either.</p>
+            <p>No. Every TheCloser window, including its menus and popovers, is excluded from screen capture by macOS. Zoom, Google Meet, Microsoft Teams and screen recorders capture your screen without it. Its menu-bar icon only shows when you're not on a call.</p>
           </details>
           <details class="faq-item">
             <summary>Is it really free?</summary>
-            <p>Yes. TheCloser is open source under the MIT license, with no subscription and no account. You add your own API key and pay the AI provider directly for what you use.</p>
+            <p>Yes. TheCloser is open source under the MIT license, with no account. You add your own keys and pay OpenRouter and ElevenLabs directly for what you use. A paid plan that includes the models, with no keys to set up, is coming soon.</p>
           </details>
           <details class="faq-item">
-            <summary>Which AI models does it work with?</summary>
-            <p>Anthropic, OpenAI, Grok, DeepSeek, Kimi, NVIDIA NIM and OpenRouter, all from one model picker. Transcription runs on-device with Apple Speech, or with ElevenLabs Scribe if you add an ElevenLabs key.</p>
+            <summary>Which AI models does it work with, and which keys do I need?</summary>
+            <p>Claude, GPT, Gemini, Grok and Kimi, all through one OpenRouter key. Transcription uses an ElevenLabs key, or an xAI key if you pick Grok's transcription. Keys are stored only on your Mac.</p>
           </details>
           <details class="faq-item">
             <summary>Does my data go through your servers?</summary>
-            <p>No. There is no TheCloser server. Your API keys are stored on your Mac, and your transcript goes straight from your Mac to the AI provider you picked.</p>
+            <p>No. With your own keys, nothing goes through TheCloser: your keys stay on your Mac, and your transcript goes straight from your Mac to OpenRouter and your transcription provider. Sessions are saved only on your Mac.</p>
           </details>
           <details class="faq-item">
             <summary>Does it work with Zoom, Google Meet and Teams?</summary>
@@ -729,7 +684,7 @@
     <section class="closing">
       <div class="wrap">
         <h2 data-reveal>Ready before they finish the question.</h2>
-        <p data-reveal>macOS 14+ · Apple Silicon · MIT licensed · no subscription</p>
+        <p data-reveal>macOS 14+ · Apple Silicon · MIT licensed · free with your own keys</p>
         <div class="cta" data-reveal>
           <a class="btn btn-primary" href="https://github.com/TheCloserApp/MAC/releases/latest/download/TheCloser.dmg">
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.7 12.6c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.8.8-3.5.8s-1.8-.8-3-.8c-1.5 0-3 .9-3.8 2.3-1.6 2.8-.4 7 1.2 9.3.8 1.1 1.7 2.4 2.9 2.3 1.2 0 1.6-.7 3-.7s1.8.7 3 .7 2-1 2.8-2.1c.9-1.3 1.2-2.5 1.3-2.6-.1 0-2.5-1-2.5-3.8zM14.5 5.7c.6-.8 1-1.9.9-3-1 0-2.1.7-2.8 1.5-.6.7-1.1 1.8-1 2.8 1.1.1 2.2-.5 2.9-1.3z"/></svg>
