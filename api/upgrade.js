@@ -14,6 +14,7 @@ export const POST = handle(async (request) => {
   // A current pass only: the page shows the subscriber's card.
   const claims = readPass(bearer(request), env('PASS_SECRET'));
   if (!claims) return json(401, { error: 'pass_expired' });
+  if (claims.tst) return json(409, { error: 'tester_access' });
   const subscription = await stripe().subscriptions.retrieve(claims.sub);
   if (!isLive(subscription)) return json(402, { error: 'no_subscription' });
   if (planOf(subscription) === 'pro_max') return json(409, { error: 'already_pro_max' });

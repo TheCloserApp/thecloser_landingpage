@@ -69,8 +69,18 @@ The subscription's Stripe metadata holds `device`, `plan`, `or_hash`, `or_key`, 
 | `OPENROUTER_MANAGEMENT_KEY` | OpenRouter → Settings → Provisioning (management) keys |
 | `BLOB_STORE_ID` | Set by Vercel when a **private** Blob store is connected to the project (Storage → Create → Blob). Used by `/api/model-request`, which signs in with the deployment's OIDC token. Older stores set `BLOB_READ_WRITE_TOKEN` instead, which also works. |
 | `PASS_SECRET` | Any long random string, e.g. `openssl rand -hex 32`. Changing it signs everyone out, and existing subscribers' stored keys can no longer be decrypted, so set it once. |
+| `TESTER_CODE` | Optional. The code testers type in the app to get Pro for free. See **Tester access** below. |
+| `TESTER_OPENROUTER_KEY` | Optional. The shared OpenRouter key testers use. It **must** have a credit limit, the total test budget; the server refuses a key without one. |
 
 Stripe prices are found by lookup key: `pro_monthly` and `pro_max_monthly`. Reuse the existing **TheCloser Pro** and **TheCloser Pro Max** products for both platforms. Do not create Windows-specific products. Prices must be active, fixed-amount, licensed, monthly recurring prices. The app reads the actual amount and currency; the AI allowances ($8/$20) are independent of the subscription prices.
+
+### Tester access
+
+To let people try Pro without paying, set `TESTER_CODE` and `TESTER_OPENROUTER_KEY`, then redeploy.
+- **Budget:** create the key in OpenRouter (Settings → API Keys → Create) with a **credit limit** and no reset, for example $5. That's the most all testers together can spend, and OpenRouter enforces it.
+- **Redeeming:** testers type the code under **Have a tester code?**, next to the plans in onboarding or Settings → AI. Case, spaces and dashes don't matter.
+- **What they get:** Pro's models. The usage bar shows the shared budget.
+- **Ending it:** delete `TESTER_CODE`, and passes stop renewing within an hour. Or disable the key in OpenRouter to stop AI at once.
 
 ### Stripe event destination and customer portal
 

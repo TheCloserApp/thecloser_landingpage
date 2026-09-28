@@ -18,6 +18,7 @@ export const POST = handle(async (request) => {
   const current = readPass(token, secret);
   const claims = current ?? readPass(token, secret, { allowExpired: true });
   if (!claims) return json(401, { error: 'pass_expired' });
+  if (claims.tst) return json(409, { error: 'tester_access' });
   const subscription = await stripe().subscriptions.retrieve(claims.sub);
   if (subscription.metadata?.device !== claims.dev) return json(401, { error: 'wrong_device' });
   if ((!current || device !== undefined) && (typeof device !== 'string' || !DEVICE_PATTERN.test(device) || device !== claims.dev)) {
