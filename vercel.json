@@ -10,6 +10,11 @@
       "source": "/thecloser.dmg",
       "destination": "https://github.com/TheCloserApp/MAC/releases/latest/download/TheCloser.dmg",
       "permanent": false
+    },
+    {
+      "source": "/thecloser.exe",
+      "destination": "https://github.com/TheCloserApp/TheCloser/releases/latest/download/TheCloser.exe",
+      "permanent": false
     }
   ],
   "headers": [
