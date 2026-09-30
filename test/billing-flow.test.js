@@ -55,17 +55,17 @@ test('checkout uses the existing recurring price and reuses a double-clicked ses
   assert.deepEqual(await responses[0].json(), { url: 'https://checkout.stripe.com/c/pay/test', sessionId: 'cs_test_new' });
   assert.deepEqual(await responses[1].json(), { url: 'https://checkout.stripe.com/c/pay/test', sessionId: 'cs_test_new' });
   assert.equal(created.length, 1);
-  assert.deepEqual(created[0].args.line_items, [{ price: 'price_pro_monthly', quantity: 1 }]);
+  assert.deepEqual(created[0].args.line_items, [{ price: 'price_pro_monthly1', quantity: 1 }]);
   assert.deepEqual(created[0].args.subscription_data.metadata, { device, plan: 'pro' });
   assert.equal(created[0].args.mode, 'subscription');
   assert.match(created[0].options.idempotencyKey, /^[a-f0-9]{64}$/);
 });
 
 test('changing plans expires the earlier unpaid Checkout session', async () => {
-  sessions.set('cs_test_old', { id: 'cs_test_old', mode: 'subscription', status: 'open', client_reference_id: device, metadata: { plan: 'pro', price: 'price_pro_monthly' }, url: 'https://checkout.stripe.com/old' });
+  sessions.set('cs_test_old', { id: 'cs_test_old', mode: 'subscription', status: 'open', client_reference_id: device, metadata: { plan: 'pro', price: 'price_pro_monthly1' }, url: 'https://checkout.stripe.com/old' });
   assert.equal((await checkout(post({ device, plan: 'pro_max' }))).status, 200);
   assert.deepEqual(expired, ['cs_test_old']);
-  assert.equal(created[0].args.line_items[0].price, 'price_pro_max_monthly');
+  assert.equal(created[0].args.line_items[0].price, 'price_pro_max_monthly1');
 });
 
 test('a past-due or active subscription blocks a second purchase even during Stripe search lag', async () => {

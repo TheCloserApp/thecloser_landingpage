@@ -3,10 +3,17 @@ import { test } from 'node:test';
 import { DEVICE_PATTERN, PLANS, planForLookupKey } from '../api/_lib/config.js';
 
 test('lookup keys map back to plans', () => {
-  assert.equal(planForLookupKey('pro_monthly'), 'pro');
-  assert.equal(planForLookupKey('pro_max_monthly'), 'pro_max');
+  assert.equal(planForLookupKey('pro_monthly1'), 'pro');
+  assert.equal(planForLookupKey('pro_max_monthly1'), 'pro_max');
+  assert.equal(PLANS.pro.lookupKey, 'pro_monthly1', 'new checkouts use the $19 price');
+  assert.equal(PLANS.pro_max.lookupKey, 'pro_max_monthly1', 'new checkouts use the $39 price');
   assert.equal(planForLookupKey('something_else'), null);
   assert.equal(planForLookupKey(undefined), null);
+});
+
+test('subscriptions on the earlier $1 prices keep their plan', () => {
+  assert.equal(planForLookupKey('pro_monthly'), 'pro');
+  assert.equal(planForLookupKey('pro_max_monthly'), 'pro_max');
 });
 
 test('Pro Max includes every Pro model and costs us more', () => {

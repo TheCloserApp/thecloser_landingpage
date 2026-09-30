@@ -74,7 +74,7 @@ The subscription's Stripe metadata holds `device`, `plan`, `or_hash`, `or_key`, 
 | `TESTER_CODE` | Optional. The code testers type in the app to get Pro for free. See **Tester access** below. |
 | `TESTER_OPENROUTER_KEY` | Optional. The shared OpenRouter key testers use. It **must** have a credit limit, the total test budget; the server refuses a key without one. |
 
-Stripe prices are found by lookup key: `pro_monthly` and `pro_max_monthly`. Reuse the existing **TheCloser Pro** and **TheCloser Pro Max** products for both platforms. Do not create Windows-specific products. Prices must be active, fixed-amount, licensed, monthly recurring prices. The app reads the actual amount and currency; the AI allowances ($8/$20) are independent of the subscription prices.
+Stripe prices are found by lookup key: `pro_monthly1` ($19) and `pro_max_monthly1` ($39). Subscriptions started on the earlier $1 test prices (`pro_monthly`, `pro_max_monthly`) keep their plan (`formerLookupKeys` in `api/_lib/config.js`). Reuse the existing **TheCloser Pro** and **TheCloser Pro Max** products for both platforms. Do not create Windows-specific products. Prices must be active, fixed-amount, licensed, monthly recurring prices. The app reads the actual amount and currency; the AI allowances ($8/$20) are independent of the subscription prices.
 
 ### Tester access
 
