@@ -34,6 +34,21 @@ export const POST = handle(async (request) => {
     },
     body: JSON.stringify(body),
   });
+  if (upstream.status === 402) {
+    // Two different 402s. The subscriber's own key hit its cap: that's their
+    // allowance, and the app says so. Or TheCloser's OpenRouter account is
+    // out of credit ("limit_source": "openrouter_credits"): our problem, not
+    // theirs, so they're told to try again and it's logged for us to top up.
+    const text = await upstream.text();
+    if (isAccountOutOfCredit(text)) {
+      console.error('OpenRouter account is out of credit: add credits (or turn on auto top-up) at openrouter.ai/settings/credits');
+      return new Response("TheCloser couldn't answer right now. Try again in a moment.", {
+        status: 503,
+        headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' },
+      });
+    }
+    return new Response(text, { status: 402, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } });
+  }
   return new Response(upstream.body, {
     status: upstream.status,
     headers: {
@@ -42,3 +57,12 @@ export const POST = handle(async (request) => {
     },
   });
 });
+
+/** OpenRouter's 402 when the account's balance, not the key's limit, can't cover the request. */
+export function isAccountOutOfCredit(body) {
+  try {
+    return JSON.parse(body)?.error?.metadata?.limit_source === 'openrouter_credits';
+  } catch {
+    return false;
+  }
+}
