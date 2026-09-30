@@ -13,7 +13,7 @@ const portalSessions = [];
 class FakeStripe {
   subscriptions = { retrieve: async (id) => structuredClone(subscriptions.get(id)) };
   prices = {
-    list: async ({ lookup_keys }) => ({ data: lookup_keys[0] === 'pro_max_monthly' ? [{ id: 'price_max', type: 'recurring', unit_amount: 100, recurring: { interval: 'month', interval_count: 1, usage_type: 'licensed' } }] : [] }),
+    list: async ({ lookup_keys }) => ({ data: lookup_keys[0] === 'pro_max_monthly1' ? [{ id: 'price_max', type: 'recurring', unit_amount: 100, recurring: { interval: 'month', interval_count: 1, usage_type: 'licensed' } }] : [] }),
   };
   billingPortal = {
     sessions: {

@@ -20,15 +20,19 @@ const PREMIUM_MODELS = [
   'openai/gpt-5.5',
 ];
 
+// `lookupKey` is the Stripe price new checkouts use ($19 / $39). Subscriptions
+// started on an earlier price keep working: `formerLookupKeys` still name
+// their plan (the $1 test prices, `pro_monthly` / `pro_max_monthly`).
 export const PLANS = {
-  pro:     { name: 'Pro',     lookupKey: 'pro_monthly',     allowanceUSD: 8,  models: STANDARD_MODELS },
-  pro_max: { name: 'Pro Max', lookupKey: 'pro_max_monthly', allowanceUSD: 20, models: [...STANDARD_MODELS, ...PREMIUM_MODELS] },
+  pro:     { name: 'Pro',     lookupKey: 'pro_monthly1',     formerLookupKeys: ['pro_monthly'],     allowanceUSD: 8,  models: STANDARD_MODELS },
+  pro_max: { name: 'Pro Max', lookupKey: 'pro_max_monthly1', formerLookupKeys: ['pro_max_monthly'], allowanceUSD: 20, models: [...STANDARD_MODELS, ...PREMIUM_MODELS] },
 };
 
 export const isPlan = (plan) => typeof plan === 'string' && Object.hasOwn(PLANS, plan);
 
 export function planForLookupKey(lookupKey) {
-  return Object.keys(PLANS).find((plan) => PLANS[plan].lookupKey === lookupKey) ?? null;
+  return Object.keys(PLANS).find((plan) =>
+    PLANS[plan].lookupKey === lookupKey || PLANS[plan].formerLookupKeys.includes(lookupKey)) ?? null;
 }
 
 export const SITE_URL = process.env.SITE_URL ?? 'https://www.thecloser.tech';
